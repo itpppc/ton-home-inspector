@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/app/app-shell";
 import { InstallButton } from "@/features/pwa/install-ui";
+import { TonAiCredit } from "@/components/app/ton-ai-credit";
 import { formatDateTime } from "@/lib/utils";
 
 type V = z.infer<typeof profileSchema>;
@@ -92,6 +93,13 @@ export default function ProfilePage() {
               <CardDescription>ใช้ได้ทั้ง iPhone, iPad, Android และคอมพิวเตอร์ เปิดเต็มจอและทำงานแบบออฟไลน์</CardDescription>
             </CardHeader>
             <CardContent><InstallButton className="w-full sm:w-auto" /></CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>เกี่ยวกับแอป</CardTitle>
+              <CardDescription>TON Home Inspector · ระบบตรวจรับบ้านและติดตามงานแก้ไข</CardDescription>
+            </CardHeader>
+            <CardContent><TonAiCredit /></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>การแสดงผล</CardTitle></CardHeader>

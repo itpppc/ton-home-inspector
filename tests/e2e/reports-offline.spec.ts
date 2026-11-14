@@ -52,7 +52,8 @@ test.describe("Phase 3 — offline inspection, reports, backup", () => {
     await expect(report).toContainText("1240-032002");
     await expect(report).toContainText("น้ำรั่วซึมที่ผนังห้องน้ำ ก่อนโอนกรรมสิทธิ์");
     await expect(report).toContainText("ไม่ใช่การรับรองความปลอดภัย");
-    await expect(report.locator("img")).toHaveCount(1);
+    await expect(report.locator("img:not([alt=\"TON AI\"])")).toHaveCount(1); // defect photo (logo excluded)
+    await expect(report.locator("footer")).toContainText("TON AI SERVICE TECH");
     await expect(report.locator("[data-photo-loading]")).toHaveCount(0);
 
     // print view hides the app chrome

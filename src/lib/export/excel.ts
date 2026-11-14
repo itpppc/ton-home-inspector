@@ -1,3 +1,4 @@
+import { TON_AI, TON_AI_CREDIT_TEXT, tonAiCopyright } from "@/lib/brand/ton-ai";
 import type { Workbook } from "exceljs";
 import { computeClaimDeadline } from "@/lib/domain/deadline";
 import { DEFECT_STATUS_META, ENGINEERING_DISCLAIMER, ITEM_STATUS_META, PRIORITY_META, SCOPE_META, SEVERITY_META } from "@/lib/domain/labels";
@@ -41,6 +42,9 @@ export async function buildWorkbook(data: ReportData): Promise<Workbook> {
   const { default: ExcelJS } = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   wb.creator = "TON Home Inspector";
+  wb.company = TON_AI.name;
+  wb.lastModifiedBy = TON_AI.name;
+  wb.description = `${TON_AI_CREDIT_TEXT} · ${TON_AI.url}`;
   wb.created = new Date(data.generatedAt);
 
   const { property, project } = data;
@@ -100,6 +104,10 @@ export async function buildWorkbook(data: ReportData): Promise<Workbook> {
   note.alignment = { wrapText: true, vertical: "top" };
   note.font = BASE_FONT;
   note.height = 64;
+  s.addRow([]);
+  const credit = s.addRow([tonAiCopyright(new Date(data.generatedAt)), { text: TON_AI_CREDIT_TEXT, hyperlink: TON_AI.url }]);
+  credit.font = { ...BASE_FONT, size: 10, color: { argb: "FF64748B" } };
+  credit.getCell(2).font = { ...BASE_FONT, size: 10, underline: true, color: { argb: "FF0E7490" } };
 
   // ── Checklist ──
   addTable(wb, "Checklist", [

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { BrandLockup, BrandMark } from "./brand";
 import { SyncIndicator } from "./sync-indicator";
 import { InstallBanner } from "@/features/pwa/install-ui";
+import { TonAiCredit } from "./ton-ai-credit";
 
 /** `mobile: false` items are desktop-sidebar only (mobile bottom nav holds 5; profile lives in the header). */
 const NAV = [
@@ -113,6 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <LogOut className="size-4" aria-hidden />ออกจากระบบ
             </button>
           )}
+          <TonAiCredit inverted compact className="mt-4 border-t border-white/10 pt-3" />
         </div>
       </aside>
 
@@ -129,7 +131,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0"><InstallBanner />{children}</main>
+      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0"><InstallBanner />{children}<footer className="mt-10 flex justify-center border-t pt-4 lg:hidden print:hidden"><TonAiCredit /></footer></main>
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden print:hidden" aria-label="เมนูหลัก">

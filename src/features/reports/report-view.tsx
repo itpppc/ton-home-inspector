@@ -1,4 +1,5 @@
 "use client";
+import { TON_AI, tonAiCopyright } from "@/lib/brand/ton-ai";
 import * as React from "react";
 import { computeClaimDeadline } from "@/lib/domain/deadline";
 import { DEFECT_STATUS_META, ENGINEERING_DISCLAIMER, ITEM_STATUS_META, SCOPE_META, SEVERITY_META } from "@/lib/domain/labels";
@@ -175,6 +176,15 @@ export function ReportView({ data }: { data: ReportData }) {
           ))}
         </div>
       </Section>
+
+      <footer className="mt-8 flex items-center gap-3 border-t border-neutral-300 pt-3 text-[11px] text-neutral-600 break-inside-avoid">
+        {/* eslint-disable-next-line @next/next/no-img-element -- static SVG must render in print */}
+        <img src={TON_AI.logo} alt="TON AI" width={28} height={28} className="rounded" />
+        <div className="leading-tight">
+          <p className="font-semibold text-neutral-800">{tonAiCopyright(new Date(data.generatedAt))}</p>
+          <p>พัฒนาและออกแบบโดย {TON_AI.name} · <a href={TON_AI.url} className="text-cyan-800 underline">{TON_AI.host}</a></p>
+        </div>
+      </footer>
     </div>
   );
 }
