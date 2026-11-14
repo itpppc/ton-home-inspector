@@ -37,7 +37,7 @@ test.describe("PWA install — every OS", () => {
     await banner.getByRole("button", { name: /ไม่ต้องแสดงอีก/ }).click();
     await expect(banner).toBeHidden();
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "ภาพรวมงานตรวจ" })).toBeVisible();
     await expect(page.getByRole("region", { name: "ติดตั้งแอป" })).toBeHidden();
     // Still reachable from the profile page after dismissing the banner.
     await page.goto("/profile");
@@ -63,7 +63,7 @@ test.describe("PWA install — every OS", () => {
       window.matchMedia = (q: string) => (q.includes("display-mode: standalone") ? ({ matches: true, media: q, addEventListener() {}, removeEventListener() {} } as unknown as MediaQueryList) : orig(q));
     });
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "ภาพรวมงานตรวจ" })).toBeVisible();
     await expect(page.getByRole("region", { name: "ติดตั้งแอป" })).toHaveCount(0);
   });
 });

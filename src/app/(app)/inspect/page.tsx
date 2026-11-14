@@ -33,7 +33,7 @@ export default function InspectPage() {
 
   const shared = React.useMemo(() => (data && ws.property ? { property: { id: ws.property.id, project_id: ws.property.project_id }, rooms: data.rooms, categories: data.categories.map((c) => c.name) } : null), [data, ws.property]);
 
-  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   if (!ws.property) return <EmptyState icon={ClipboardList} title="ยังไม่ได้เลือกบ้าน" action={<Button asChild><Link href="/projects">ไปที่โครงการ</Link></Button>} />;
   if (data.items.length === 0) {
     return <EmptyState icon={ClipboardList} title="ยังไม่มี Checklist สำหรับบ้านนี้" body="สร้าง Checklist มาตรฐานหรือเพิ่มหัวข้อเอง" action={<Button asChild><Link href={`/property?id=${ws.property.id}`}>ไปที่ข้อมูลบ้าน</Link></Button>} />;

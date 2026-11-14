@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
-import { AlertOctagon, Building2, CheckCircle2, ClipboardCheck, ClipboardList, FileText, FolderKanban, Hourglass, ShieldCheck, Wrench, XCircle } from "lucide-react";
+import { ArrowRight, Building2, ClipboardCheck, FileText } from "lucide-react";
 import { getDB } from "@/lib/db/local";
 import { alive } from "@/lib/db/mutations";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -14,23 +14,19 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { DeadlineBanner } from "@/components/app/deadline-banner";
 import { EmptyState, PageHeader } from "@/components/app/app-shell";
-import { DonutChart, ProgressByCategoryChart, SimpleBarChart } from "@/components/app/charts";
+import { ITEM_STATUS_COLORS, ProgressByCategoryChart, ShareBar, SimpleBarChart } from "@/components/app/charts";
 import { cn, formatNumber } from "@/lib/utils";
 
 type Scope = "property" | "all";
 
-function Stat({ label, value, icon: Icon, tone, hint }: { label: string; value: number | string; icon: React.ComponentType<{ className?: string }>; tone: string; hint?: string }) {
+/** One cell of the ledger strip: label on top, mono figure, optional note. */
+function Cell({ label, value, note, tone, testId }: { label: string; value: number | string; note?: string; tone?: string; testId?: string }) {
   return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
-          <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
-          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-        </div>
-        <span className={cn("grid size-10 place-items-center rounded-lg", tone)}><Icon className="size-5" /></span>
-      </div>
-    </Card>
+    <div className="bg-card px-3 py-3 sm:px-4" data-testid={testId}>
+      <dt className="eyebrow !tracking-[0.06em] normal-case">{label}</dt>
+      <dd data-value className={cn("figure mt-1 text-2xl font-semibold", tone)}>{value}</dd>
+      {note && <dd className="text-[11px] text-muted-foreground">{note}</dd>}
+    </div>
   );
 }
 
@@ -51,7 +47,7 @@ export default function DashboardPage() {
     return { items, categories, defects };
   }, [scope, propertyId, ws.properties]);
 
-  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-xl bg-muted" aria-busy />;
+  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-md bg-muted" aria-busy />;
   if (ws.properties.length === 0) {
     return <EmptyState icon={Building2} title="ยังไม่มีบ้านในระบบ" body="เริ่มจากสร้างโครงการและเพิ่มบ้านที่จะตรวจ" action={<Button asChild><Link href="/projects">ไปที่โครงการ</Link></Button>} />;
   }
@@ -69,13 +65,13 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Dashboard"
+        title="ภาพรวมงานตรวจ"
         description={scope === "property" && ws.property ? `${ws.project?.name ?? ""} · แปลง ${ws.property.plot_number ?? "-"} · ${ws.property.house_model ?? ""}` : "ทุกโครงการและทุกบ้าน"}
         actions={<>
           <Button asChild variant="outline"><Link href="/reports"><FileText />รายงาน / Excel / สำรองข้อมูล</Link></Button>
-          <div role="group" aria-label="ขอบเขตข้อมูล" className="inline-flex rounded-lg bg-muted p-1">
+          <div role="group" aria-label="ขอบเขตข้อมูล" className="inline-flex rounded-md border border-input bg-card p-0.5">
             {(["property", "all"] as const).map((s) => (
-              <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={cn("rounded-md px-3 py-1.5 text-sm font-medium", scope === s ? "bg-card shadow-sm" : "text-muted-foreground")}>
+              <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={cn("rounded-[4px] px-3 py-1.5 text-sm font-medium", scope === s ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground")}>
                 {s === "property" ? "บ้านนี้" : "ทั้งหมด"}
               </button>
             ))}
@@ -85,57 +81,58 @@ export default function DashboardPage() {
 
       {ws.property && <DeadlineBanner property={ws.property} className="mb-4" />}
 
-      <Card className="mb-4">
-        <CardHeader className="pb-2">
-          <div className="flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <CardTitle>Inspection Progress</CardTitle>
-              <CardDescription>ตรวจแล้ว {formatNumber(cs.checked)} จาก {formatNumber(cs.total)} รายการ · ไม่นับรายการที่ยังไม่ตรวจเป็นผ่าน</CardDescription>
+      {/* Status sheet: the one number that matters, then the counts as a stamped tally */}
+      <Card className="mb-4 overflow-hidden">
+        <div className="grid gap-0 md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)]">
+          <div className="flex flex-col justify-between gap-3 border-b bg-foreground p-5 text-background md:border-b-0 md:border-r">
+            <p className="font-mono text-[11px] font-semibold tracking-[0.14em] opacity-70">INSPECTION PROGRESS</p>
+            <p className="figure text-6xl font-semibold leading-none">{cs.progressPct}<span className="text-3xl opacity-60">%</span></p>
+            <p className="text-sm opacity-75" data-testid="checked-summary">ตรวจแล้ว <b className="figure">{formatNumber(cs.checked)}</b> / {formatNumber(cs.total)} ข้อ</p>
+          </div>
+          <div className="space-y-4 p-5">
+            <Progress value={cs.progressPct} label="ความคืบหน้าการตรวจ" className="h-4" />
+            <ul className="flex flex-wrap gap-2" aria-label="สรุปผลการตรวจ">
+              {([["PASS", "ผ่าน", cs.counts.PASS], ["FAIL", "ไม่ผ่าน", cs.counts.FAIL], ["NEEDS_REINSPECTION", "ตรวจซ้ำ", cs.counts.NEEDS_REINSPECTION], ["NOT_APPLICABLE", "N/A", cs.counts.NOT_APPLICABLE]] as const).map(([k, label, n]) => (
+                <li key={k} className="stamp" style={{ color: ITEM_STATUS_COLORS[k] }}>{label} <span className="figure">{n}</span></li>
+              ))}
+              <li className="stamp text-muted-foreground">รอตรวจ <span className="figure">{cs.pending}</span></li>
+            </ul>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">อัตราผ่าน <b className="figure text-foreground">{cs.passRatePct}%</b> · ข้อที่ยังไม่ตรวจไม่นับเป็นผ่าน</p>
+              <Button asChild variant="accent" className="w-full sm:w-auto"><Link href="/inspect"><ClipboardCheck />ตรวจต่อ<ArrowRight /></Link></Button>
             </div>
-            <p className="text-3xl font-bold tabular-nums text-primary dark:text-secondary">{cs.progressPct}%</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Progress value={cs.progressPct} label="ความคืบหน้าการตรวจ" className="h-3" />
-          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
-            <span><b className="text-success">{cs.counts.PASS}</b> ผ่าน</span>
-            <span><b className="text-danger">{cs.counts.FAIL}</b> ไม่ผ่าน</span>
-            <span><b className="text-warning-strong">{cs.counts.NEEDS_REINSPECTION}</b> ต้องตรวจซ้ำ</span>
-            <span><b className="text-secondary-strong">{cs.counts.NOT_APPLICABLE}</b> N/A</span>
-            <span><b>{cs.pending}</b> รอตรวจ</span>
-            <span className="text-muted-foreground">อัตราผ่าน {cs.passRatePct}%</span>
-          </div>
-          <Button asChild className="mt-4 w-full sm:w-auto"><Link href="/inspect"><ClipboardCheck />ตรวจต่อ</Link></Button>
-        </CardContent>
+        </div>
       </Card>
 
-      <section aria-label="ตัวชี้วัด" className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <Stat label="Total Projects" value={ws.projects.length} icon={FolderKanban} tone="bg-primary/10 text-primary dark:text-secondary" />
-        <Stat label="Total Properties" value={ws.properties.length} icon={Building2} tone="bg-primary/10 text-primary dark:text-secondary" />
-        <Stat label="Inspection Items" value={formatNumber(cs.total)} icon={ClipboardList} tone="bg-accent/12 text-accent" />
-        <Stat label="Passed" value={cs.counts.PASS} icon={CheckCircle2} tone="bg-success/12 text-success" />
-        <Stat label="Failed" value={cs.counts.FAIL} icon={XCircle} tone="bg-danger/12 text-danger" />
-        <Stat label="Pending Inspection" value={cs.pending} icon={Hourglass} tone="bg-muted text-muted-foreground" />
-        <Stat label="Critical Defects" value={ds.criticalOpen} icon={AlertOctagon} tone="bg-danger/12 text-danger" hint="ยังไม่ปิดงาน" />
-        <Stat label="Resolved Defects" value={ds.resolved} icon={ShieldCheck} tone="bg-success/12 text-success" />
-        <Stat label="Pending Defects" value={ds.pending} icon={Wrench} tone="bg-warning/15 text-warning-strong" />
+      <section aria-label="ตัวชี้วัด" className="mb-4">
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-4 xl:grid-cols-8">
+          <Cell label="โครงการ" value={ws.projects.length} />
+          <Cell label="บ้าน" value={ws.properties.length} />
+          <Cell label="ข้อตรวจ" value={formatNumber(cs.total)} />
+          <Cell label="ผ่าน" value={cs.counts.PASS} tone="text-success" />
+          <Cell label="ไม่ผ่าน" value={cs.counts.FAIL} tone="text-danger" />
+          <Cell label="Defect วิกฤต" value={ds.criticalOpen} tone={ds.criticalOpen ? "text-danger" : undefined} note="ยังไม่ปิดงาน" />
+          <Cell label="Defect ค้าง" value={ds.pending} tone={ds.pending ? "text-warning-strong" : undefined} />
+          <Cell label="Defect ปิดแล้ว" value={ds.resolved} tone="text-success" testId="stat-resolved" />
+        </dl>
       </section>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="xl:col-span-2">
-          <CardHeader><CardTitle>Inspection Progress by Category</CardTitle></CardHeader>
+          <CardHeader><p className="eyebrow">01 · หมวดงาน</p><CardTitle>ความคืบหน้าแยกตามหมวด</CardTitle></CardHeader>
           <CardContent>{catRows.size ? <ProgressByCategoryChart data={[...catRows.values()]} /> : <p className="text-sm text-muted-foreground">ยังไม่มี Checklist</p>}</CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Defect Severity</CardTitle></CardHeader>
-          <CardContent>{ds.total ? <DonutChart data={SEVERITIES.map((s) => ({ name: SEVERITY_META[s].label, value: ds.bySeverity[s], color: SEVERITY_META[s].color }))} /> : <NoDefects />}</CardContent>
+          <CardHeader><p className="eyebrow">02 · ความรุนแรง</p><CardTitle>Defect ตามความรุนแรง</CardTitle></CardHeader>
+          <CardContent>{ds.total ? <ShareBar data={SEVERITIES.map((s) => ({ name: SEVERITY_META[s].label, value: ds.bySeverity[s], color: SEVERITY_META[s].color }))} /> : <NoDefects />}</CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Defect Status</CardTitle></CardHeader>
-          <CardContent>{ds.total ? <DonutChart data={DEFECT_STATUSES.map((s) => ({ name: DEFECT_STATUS_META[s].label, value: ds.byStatus[s], color: DEFECT_STATUS_META[s].color }))} /> : <NoDefects />}</CardContent>
+          <CardHeader><p className="eyebrow">03 · สถานะงานแก้</p><CardTitle>Defect ตามสถานะ</CardTitle></CardHeader>
+          <CardContent>{ds.total ? <ShareBar data={DEFECT_STATUSES.map((s) => ({ name: DEFECT_STATUS_META[s].label, value: ds.byStatus[s], color: DEFECT_STATUS_META[s].color }))} /> : <NoDefects />}</CardContent>
         </Card>
         <Card className="xl:col-span-2">
-          <CardHeader><CardTitle>Defect by Category</CardTitle></CardHeader>
+          <CardHeader><p className="eyebrow">04 · จุดที่พบมาก</p><CardTitle>Defect แยกตามหมวด</CardTitle></CardHeader>
           <CardContent>{ds.total ? <SimpleBarChart data={defectsByCategory(data.defects)} /> : <NoDefects />}</CardContent>
         </Card>
       </div>

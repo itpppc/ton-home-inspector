@@ -57,7 +57,7 @@ export function PlanCard({ plan, current }: { plan: PlanRow; current: boolean })
   return (
     <section
       aria-labelledby={`plan-${plan.tier}`}
-      className={cn("relative flex flex-col rounded-2xl border bg-card p-5 shadow-sm", featured && "border-primary ring-2 ring-primary/20", current && "bg-primary/5")}
+      className={cn("relative flex flex-col rounded-md border bg-card p-5", featured && "border-primary ring-2 ring-primary/20", current && "bg-primary/5")}
     >
       {featured && <span className="absolute -top-3 left-5 rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">แนะนำ</span>}
       <div className="flex items-center justify-between gap-2">

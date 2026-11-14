@@ -43,7 +43,7 @@ function DefectDetail({ id }: { id: string }) {
   const [note, setNote] = React.useState("");
   const [busy, setBusy] = React.useState(false);
 
-  if (data === undefined) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (data === undefined) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   if (data === null) return <EmptyState icon={Bug} title="ไม่พบ Defect นี้" action={<Button asChild variant="outline"><Link href="/defects">กลับรายการ Defect</Link></Button>} />;
   const { defect, events, item, rooms, categories } = data;
   const project = ws.projects.find((p) => p.id === defect.project_id);

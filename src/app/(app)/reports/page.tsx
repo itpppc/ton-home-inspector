@@ -40,7 +40,7 @@ export default function ReportsPage() {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const canEdit = property ? auth.canEdit(property.project_id, ws.project?.owner_id) : false;
 
-  if (ws.loading || data === undefined) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (ws.loading || data === undefined) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   if (!property || !data) return <EmptyState icon={FileText} title="ยังไม่ได้เลือกบ้าน" action={<Button asChild><Link href="/projects">ไปที่โครงการ</Link></Button>} />;
 
   const run = async (key: string, fn: () => Promise<void>) => {

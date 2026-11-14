@@ -1,5 +1,5 @@
 /* TON Home Inspector service worker — app-shell precache + runtime caching. */
-const VERSION = "v8";
+const VERSION = "v9";
 const SHELL = `ton-shell-${VERSION}`;
 const STATIC = `ton-static-${VERSION}`;
 const ROUTES = ["/", "/admin", "/plans", "/projects", "/project", "/property", "/inspect", "/checklist", "/rooms", "/defects", "/defect", "/reports", "/profile", "/login", "/register", "/forgot-password", "/reset-password"];
@@ -7,7 +7,7 @@ const ASSET_RE = /\/_next\/static\/[^"'\s)]+/g;
 
 async function precache() {
   const shell = await caches.open(SHELL);
-  const assets = new Set(["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png", "/brand/ton-ai-logo.svg", "/fonts/Sarabun-Regular.ttf", "/fonts/Sarabun-Medium.ttf", "/fonts/Sarabun-SemiBold.ttf", "/fonts/Sarabun-Bold.ttf"]);
+  const assets = new Set(["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png", "/brand/ton-ai-logo.svg", "/fonts/Sarabun-Regular.ttf", "/fonts/Sarabun-Medium.ttf", "/fonts/Sarabun-SemiBold.ttf", "/fonts/Sarabun-Bold.ttf", ...[400, 500, 600, 700].flatMap((w) => [`/fonts/plex-thai-th-${w}.woff2`, `/fonts/plex-thai-la-${w}.woff2`]), "/fonts/plex-mono-400.woff2", "/fonts/plex-mono-600.woff2"]);
   await Promise.all(
     ROUTES.map(async (route) => {
       try {

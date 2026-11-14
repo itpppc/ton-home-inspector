@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("TON AI copyright on every surface", () => {
   test("app footer/sidebar, profile About and the printable report link to ton-ai-tech.web.app", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "ภาพรวมงานตรวจ" })).toBeVisible();
     const credit = page.getByRole("link", { name: /© 25\d\d TON AI SERVICE TECH/ }).filter({ visible: true });
     await expect(credit.first()).toHaveAttribute("href", "https://ton-ai-tech.web.app/");
     expect((await page.request.get("/brand/ton-ai-logo.svg")).ok()).toBe(true);

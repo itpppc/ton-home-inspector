@@ -15,7 +15,7 @@ export function DialogContent({ className, children, title, description, ...p }:
       <D.Content
         className={cn(
           "fixed z-50 flex max-h-[92dvh] w-full flex-col bg-card shadow-xl focus:outline-none",
-          "inset-x-0 bottom-0 rounded-t-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl",
+          "inset-x-0 bottom-0 rounded-t-2xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md",
           className,
         )}
         {...p}

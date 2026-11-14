@@ -116,7 +116,7 @@ export function InstallBanner() {
     setHidden(true);
   };
   return (
-    <div role="region" aria-label="ติดตั้งแอป" className="mb-4 flex items-center gap-3 rounded-xl border bg-card p-3 shadow-sm print:hidden">
+    <div role="region" aria-label="ติดตั้งแอป" className="mb-4 flex items-center gap-3 rounded-md border bg-card p-3 print:hidden">
       <BrandMark className="size-11 shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">ติดตั้งแอปลงมือถือ</p>

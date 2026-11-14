@@ -16,7 +16,7 @@ import { TonAiCredit } from "./ton-ai-credit";
 
 /** `mobile: false` items are desktop-sidebar only (mobile bottom nav holds 5; profile lives in the header). */
 const NAV = [
-  { href: "/", label: "Dashboard", short: "ภาพรวม", icon: LayoutDashboard, mobile: true },
+  { href: "/", label: "ภาพรวม", short: "ภาพรวม", icon: LayoutDashboard, mobile: true },
   { href: "/inspect", label: "ตรวจบ้าน", short: "ตรวจบ้าน", icon: ClipboardCheck, mobile: true },
   { href: "/defects", label: "Defect", short: "Defect", icon: Bug, mobile: true },
   { href: "/checklist", label: "จัดการ Checklist", short: "Checklist", icon: ListChecks, mobile: true },
@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (suspended) {
     return (
       <div className="grid min-h-dvh place-items-center p-6 pt-safe">
-        <div role="alert" className="max-w-sm space-y-3 rounded-2xl border bg-card p-6 text-center shadow-sm">
+        <div role="alert" className="max-w-sm space-y-3 rounded-md border bg-card p-6 text-center">
           <Ban className="mx-auto size-10 text-danger" aria-hidden />
           <h1 className="text-lg font-bold">บัญชีนี้ถูกระงับการใช้งาน</h1>
           <p className="text-sm text-muted-foreground">กรุณาติดต่อผู้ดูแลระบบ ข้อมูลของคุณไม่ได้ถูกลบ และจะกลับมาใช้ได้เมื่อเปิดบัญชีอีกครั้ง</p>
@@ -105,19 +105,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-dvh lg:pl-64 print:pl-0">
+    <div className="bg-drafting min-h-dvh lg:pl-64 print:bg-white print:pl-0">
       <a href="#main" className="print:hidden sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:p-2">ข้ามไปเนื้อหาหลัก</a>
 
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex print:!hidden">
         <div className="border-b border-white/10 px-5 py-5"><BrandLockup inverted /></div>
-        <nav className="flex-1 space-y-1 p-3" aria-label="เมนูหลัก">
-          {navItems.map(({ href, label, icon: Icon }) => {
+        <p className="px-5 pb-1 pt-5 font-mono text-[10px] font-semibold tracking-[0.16em] text-white/40">INDEX</p>
+        <nav className="flex-1 overflow-y-auto px-2 pb-3" aria-label="เมนูหลัก">
+          {navItems.map(({ href, label, icon: Icon }, i) => {
             const active = isActive(pathname, href);
             return (
               <Link key={href} href={href} aria-current={active ? "page" : undefined}
-                className={cn("flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors", active ? "bg-white/10 text-white shadow-[inset_3px_0_0_var(--color-secondary)]" : "hover:bg-white/5 hover:text-white")}>
-                <Icon className="size-5" aria-hidden />{label}
+                className={cn("group relative flex items-center gap-3 border-b border-white/[0.06] px-3 py-2.5 text-sm transition-colors", active ? "bg-white/[0.06] font-semibold text-[#fffdf8]" : "hover:bg-white/[0.04] hover:text-white")}>
+                <span aria-hidden className={cn("absolute inset-y-1.5 left-0 w-[3px] bg-signal transition-opacity", active ? "opacity-100" : "opacity-0")} />
+                <span aria-hidden className={cn("w-5 font-mono text-[11px] tabular-nums", active ? "text-signal" : "text-white/35")}>{String(i + 1).padStart(2, "0")}</span>
+                <Icon className="size-[18px] opacity-80" aria-hidden />{label}
               </Link>
             );
           })}
@@ -135,7 +138,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Header */}
-      <header className="print:hidden pt-safe sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+      <header className="print:hidden pt-safe sticky top-0 z-20 border-b-2 border-foreground/85 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
           <div className="lg:hidden"><BrandMark className="size-8" /></div>
           <PropertySwitcher />
@@ -147,18 +150,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0"><InstallBanner />{children}<footer className="mt-10 flex justify-center border-t pt-4 lg:hidden print:hidden"><TonAiCredit /></footer></main>
+      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-5 sm:px-6 lg:pb-12 print:max-w-none print:p-0"><InstallBanner />{children}<footer className="mt-10 flex justify-center border-t pt-4 lg:hidden print:hidden"><TonAiCredit /></footer></main>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden print:hidden" aria-label="เมนูหลัก">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-foreground/85 bg-card pb-safe lg:hidden print:hidden" aria-label="เมนูหลัก">
         <ul className="grid grid-cols-5">
           {NAV.filter((n) => n.mobile).map(({ href, short, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <li key={href}>
                 <Link href={href} aria-current={active ? "page" : undefined}
-                  className={cn("flex min-h-16 flex-col items-center justify-center gap-0.5 text-[11px] font-medium", active ? "text-primary dark:text-secondary" : "text-muted-foreground")}>
-                  <Icon className={cn("size-6", active && "stroke-[2.4]")} aria-hidden />{short}
+                  className={cn("relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-[11px] font-medium", active ? "font-semibold text-foreground" : "text-muted-foreground")}>
+                  <span aria-hidden className={cn("absolute inset-x-4 top-0 h-[3px] bg-signal", active ? "opacity-100" : "opacity-0")} />
+                  <Icon className={cn("size-6", active && "stroke-[2.2] text-accent")} aria-hidden />{short}
                 </Link>
               </li>
             );
@@ -169,22 +173,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Sheet number per section, like a drawing set (A-01 …). */
+const SHEET: [string, string][] = [["/admin", "ADM"], ["/plans", "PLN"], ["/profile", "ACC"], ["/reports", "RPT"], ["/rooms", "RMS"], ["/checklist", "CHK"], ["/defect", "DEF"], ["/inspect", "INS"], ["/propert", "HSE"], ["/project", "PRJ"], ["/", "OVR"]];
+
+/** Page title set like a drawing title block: mono sheet code, heavy title, double rule. */
 export function PageHeader({ title, description, actions }: { title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
+  const pathname = usePathname() ?? "/";
+  const code = SHEET.find(([p]) => (p === "/" ? pathname === "/" : pathname.startsWith(p)))?.[1] ?? "DOC";
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-      <div className="min-w-0">
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
-        {description && <div className="text-sm text-muted-foreground">{description}</div>}
+    <div className="mb-5 border-b-[3px] border-double border-foreground/80 pb-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="eyebrow mb-1"><span className="text-accent">■</span> SHEET {code}</p>
+          <h1 className="text-[1.6rem] font-bold leading-tight tracking-tight sm:text-3xl">{title}</h1>
+          {description && <div className="mt-1 text-sm text-muted-foreground">{description}</div>}
+        </div>
+        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
     </div>
   );
 }
 
 export function EmptyState({ icon: Icon, title, body, action }: { icon: React.ComponentType<{ className?: string }>; title: string; body?: string; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed bg-card px-6 py-12 text-center">
-      <Icon className="size-10 text-muted-foreground" />
+    <div className="flex flex-col items-center gap-2 rounded-md border-2 border-dashed border-input bg-card/70 px-6 py-12 text-center">
+      <Icon className="size-10 text-accent" />
       <p className="font-semibold">{title}</p>
       {body && <p className="max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-2">{action}</div>}

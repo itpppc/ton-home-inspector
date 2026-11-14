@@ -4,17 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-[background-color,color,transform] active:translate-y-px disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-ring [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/85",
+        default: "bg-primary text-primary-foreground hover:bg-primary/88",
+        secondary: "border border-foreground/80 bg-card text-foreground hover:bg-muted",
         accent: "bg-accent text-accent-foreground hover:bg-accent/90",
-        outline: "border border-input bg-card hover:bg-muted",
+        outline: "border border-input bg-card hover:border-foreground/60 hover:bg-muted",
         ghost: "hover:bg-muted",
         destructive: "bg-danger text-white hover:bg-danger/90",
-        link: "text-primary underline-offset-4 hover:underline dark:text-secondary",
+        link: "text-secondary underline underline-offset-4 decoration-secondary/40 hover:decoration-secondary",
       },
       size: {
         default: "h-11 px-4",

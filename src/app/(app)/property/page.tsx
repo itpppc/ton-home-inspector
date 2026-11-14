@@ -38,7 +38,7 @@ function PropertyDetail() {
     if (data?.property) void selectProperty(data.property.id);
   }, [data?.property]);
 
-  if (data === undefined) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (data === undefined) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   if (data === null) return <EmptyState icon={House} title="ไม่พบบ้านหลังนี้" action={<Button asChild variant="outline"><Link href="/projects">กลับ</Link></Button>} />;
   const { property, project, stats } = data;
   const canEdit = auth.canEdit(property.project_id, project?.owner_id);

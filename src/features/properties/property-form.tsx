@@ -60,7 +60,7 @@ export function PropertyForm({ initial, onSubmit, submitLabel = "บันทึ
           <FormField id="pp-owner" label="ผู้รับผิดชอบการตรวจ" error={errors.inspection_owner?.message}><Input {...register("inspection_owner")} /></FormField>
         </section>
 
-        <section id="transfer" className="scroll-mt-20 rounded-xl border border-secondary/40 bg-secondary/5 p-4">
+        <section id="transfer" className="scroll-mt-20 rounded-md border border-secondary/40 bg-secondary/5 p-4">
           <h3 className="mb-1 font-semibold">วันโอนกรรมสิทธิ์ & สิทธิ์แจ้งเก็บงาน</h3>
           <p className="mb-4 text-sm text-muted-foreground">ระบบคำนวณกำหนดยื่นแจ้งเก็บงานจาก <b>วันโอนจริง</b> เท่านั้น วันตามเอกสารจองใช้อ้างอิง</p>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -71,7 +71,7 @@ export function PropertyForm({ initial, onSubmit, submitLabel = "บันทึ
           </div>
         </section>
 
-        <section className="rounded-xl border p-4">
+        <section className="rounded-md border p-4">
           <h3 className="mb-1 font-semibold">ข้อมูลประกอบจากเอกสารจอง</h3>
           <p className="mb-4 text-sm text-muted-foreground">ไม่ใช่ส่วนหนึ่งของการประเมินคุณภาพทางวิศวกรรม</p>
           <div className="grid gap-4 sm:grid-cols-3">
