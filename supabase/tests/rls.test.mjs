@@ -29,6 +29,8 @@ const [A, B, V, I, GV] = [id(), id(), id(), id(), id()];
 for (const [u, e] of [[A, "a@x.co"], [B, "b@x.co"], [V, "v@x.co"], [I, "i@x.co"], [GV, "gv@x.co"]])
   await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)", [u, e, { full_name: e }]);
 await db.query("update public.profiles set role = 'VIEWER' where id = $1", [GV]);
+// The main fixture project has several members → its owner is on PRO (plan tests below cover FREE).
+await db.query("update public.profiles set plan = 'PRO' where id = $1", [A]);
 ok("profile auto-created on signup", (await db.query("select count(*)::int c from public.profiles")).rows[0].c === 5);
 
 const P = id(), H = id(), C = id(), IT = id();
@@ -234,6 +236,59 @@ ok("restoring the account restores access", !r.error && (await as(I, "select cou
 
 r = await as(A, "update public.projects set deleted_at = now() where id=$1", [P]);
 ok("admin can soft-delete project", r.count === 1, r.error);
+
+// ───────────── Membership plans (0007) ─────────────
+const [F, F2, F3] = [id(), id(), id()];
+for (const [u, e] of [[F, "f@x.co"], [F2, "f2@x.co"], [F3, "f3@x.co"]])
+  await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)", [u, e, { full_name: e }]);
+r = await as(null, "select tier, max_properties from public.plans order by sort_order");
+ok("plans are readable by anyone (pricing page)", r.rows.length === 3 && r.rows[0].tier === "FREE");
+r = await as(F, "update public.plans set price_thb_month = 0 where tier = 'PRO'");
+ok("users cannot edit plan prices", r.count === 0 || !!r.error);
+r = await as(F, "select public.my_plan() p");
+ok("new user starts on FREE with zero usage", r.rows[0]?.p.effective === "FREE" && r.rows[0].p.projects === 0 && r.rows[0].p.max_properties === 1, JSON.stringify(r.rows[0]));
+const FP = id(), FH = id();
+r = await as(F, "insert into public.projects (id, owner_id, name) values ($1,$2,'บ้านฉัน')", [FP, F]);
+ok("FREE: first project allowed", !r.error, r.error);
+r = await as(F, "insert into public.projects (id, owner_id, name) values ($1,$2,'หลังที่สอง')", [id(), F]);
+ok("FREE: second project blocked with PLAN_LIMIT", /PLAN_LIMIT:projects:1/.test(r.error ?? ""), r.error);
+r = await as(F, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้าน')", [FH, FP]);
+ok("FREE: first house allowed", !r.error, r.error);
+r = await as(F, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้าน 2')", [id(), FP]);
+ok("FREE: second house blocked with PLAN_LIMIT", /PLAN_LIMIT:properties:1/.test(r.error ?? ""), r.error);
+r = await as(F, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้าน (แก้ไข)') on conflict (id) do update set name = excluded.name", [FH, FP]);
+ok("FREE: sync re-push of an existing house is not blocked", !r.error && (await db.query("select name from public.properties where id=$1", [FH])).rows[0].name === "บ้าน (แก้ไข)", r.error);
+r = await as(F, "insert into public.projects (id, owner_id, name) values ($1,$2,'บ้านฉัน') on conflict (id) do update set name = excluded.name", [FP, F]);
+ok("FREE: sync re-push of an existing project is not blocked", !r.error, r.error);
+r = await as(F, "select public.add_project_member($1, 'f2@x.co', 'VIEWER')", [FP]);
+ok("FREE: 2nd member (1 viewer) allowed", !r.error, r.error);
+r = await as(F, "select public.add_project_member($1, 'f3@x.co', 'VIEWER')", [FP]);
+ok("FREE: 3rd member blocked with PLAN_LIMIT", /PLAN_LIMIT:members:2/.test(r.error ?? ""), r.error);
+r = await as(F, "update public.profiles set plan = 'BUSINESS' where id = $1", [F]);
+ok("user cannot upgrade own plan", !!r.error || r.count === 0);
+r = await as(F, "select public.admin_set_user_plan($1, 'BUSINESS', null)", [F]);
+ok("non-admin cannot call admin_set_user_plan", !!r.error);
+r = await as(SA, "select public.admin_set_user_plan($1, 'PRO', now() + interval '30 days')", [F]);
+ok("system admin upgrades a user to PRO", !r.error, r.error);
+r = await as(F, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้าน 2')", [id(), FP]);
+ok("PRO: second house allowed", !r.error, r.error);
+r = await as(F, "select public.my_plan() p");
+ok("my_plan reflects PRO + usage", r.rows[0]?.p.effective === "PRO" && r.rows[0].p.properties === 2, JSON.stringify(r.rows[0]));
+await db.query("update public.profiles set plan_expires_at = now() - interval '1 day' where id = $1", [F]);
+r = await as(F, "select public.my_plan() p");
+ok("expired PRO falls back to FREE (plan kept for renewal)", r.rows[0]?.p.effective === "FREE" && r.rows[0].p.plan === "PRO", JSON.stringify(r.rows[0]));
+r = await as(F, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้าน 3')", [id(), FP]);
+ok("expired plan blocks NEW houses", /PLAN_LIMIT/.test(r.error ?? ""), r.error);
+r = await as(F, "select count(*)::int c from public.properties where project_id = $1 and deleted_at is null", [FP]);
+ok("expired plan keeps existing data visible", r.rows[0]?.c === 2);
+r = await as(SA, "select public.admin_set_user_plan($1, 'FREE', now() + interval '1 year')", [F]);
+ok("downgrade to FREE clears expiry", !r.error && (await db.query("select plan_expires_at from public.profiles where id=$1", [F])).rows[0].plan_expires_at === null, r.error);
+r = await as(SA, "select public.admin_set_user_plan($1, 'PRO', null)", [SA]);
+ok("system admin cannot change own plan", !!r.error);
+r = await as(SA, "select public.my_plan() p");
+ok("system admin is unlimited", r.rows[0]?.p.unlimited === true && r.rows[0].p.max_projects === null, JSON.stringify(r.rows[0]));
+r = await as(SA, "select plan from public.admin_list_users() where id = $1", [F]);
+ok("admin_list_users includes plan", r.rows[0]?.plan === "FREE", r.error);
 
 console.log(`\n${passed} passed, ${failed} failed`);
 await db.end();

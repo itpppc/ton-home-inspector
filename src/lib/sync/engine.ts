@@ -1,5 +1,6 @@
 "use client";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { friendlyServerError } from "@/features/plans/plans";
 import { SYNC_TABLES, type Photo, type SyncedRow, type SyncedTable } from "@/lib/domain/types";
 import { PHOTO_BUCKET } from "@/lib/supabase/config";
 import { getDB, type OutboxEntry } from "@/lib/db/local";
@@ -218,8 +219,9 @@ export class SyncEngine {
         for (const p of present) {
           const single = await client.from(table).upsert(toRemote(p.row), { onConflict: "id" });
           if (single.error) {
-            failures.push(`${table}: ${single.error.message}`);
-            await db.outbox.update(p.entry.key, { attempts: p.entry.attempts + 1, last_error: single.error.message });
+            const msg = friendlyServerError(single.error.message);
+            failures.push(`${table}: ${msg}`);
+            await db.outbox.update(p.entry.key, { attempts: p.entry.attempts + 1, last_error: msg });
           } else {
             await this.ack([p.entry]);
           }

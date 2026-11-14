@@ -177,6 +177,9 @@ export interface AdminUserRow {
   disabled_at: string | null;
   project_count: number;
   property_count: number;
+  /** Migration 0007 (absent before it is applied). */
+  plan?: "FREE" | "PRO" | "BUSINESS";
+  plan_expires_at?: string | null;
 }
 
 export type SyncedTable = "projects" | "properties" | "rooms" | "checklist_categories" | "checklist_items" | "defects" | "defect_events" | "photos";

@@ -2,6 +2,7 @@
 import * as React from "react";
 import { Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { friendlyServerError } from "@/features/plans/plans";
 import { getSupabase } from "@/lib/supabase/client";
 import { ROLES, type Role } from "@/lib/domain/types";
 import { ROLE_META } from "@/lib/domain/labels";
@@ -43,7 +44,7 @@ export function MembersPanel({ projectId }: { projectId: string }) {
     setBusy(true);
     const { error } = await fn();
     setBusy(false);
-    if (error) toast.error(error.message);
+    if (error) toast.error(friendlyServerError(error.message));
     else {
       toast.success(ok);
       await load();

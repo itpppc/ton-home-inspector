@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Ban, Bug, Building2, ShieldCheck, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
+import { Ban, Bug, Building2, Crown, ShieldCheck, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { selectProperty, useWorkspace } from "@/hooks/use-workspace";
@@ -23,6 +23,7 @@ const NAV = [
   { href: "/rooms", label: "ห้อง / ตำแหน่ง", short: "ห้อง", icon: DoorOpen, mobile: false },
   { href: "/reports", label: "รายงาน & สำรองข้อมูล", short: "รายงาน", icon: FileText, mobile: false },
   { href: "/projects", label: "โครงการ & บ้าน", short: "โครงการ", icon: Building2, mobile: true },
+  { href: "/plans", label: "แพ็กเกจสมาชิก", short: "แพ็กเกจ", icon: Crown, mobile: false },
   { href: "/profile", label: "บัญชีผู้ใช้", short: "บัญชี", icon: UserRound, mobile: false },
 ] as const;
 const ADMIN_NAV = { href: "/admin", label: "ผู้ดูแลระบบ", short: "Admin", icon: ShieldCheck, mobile: false } as const;

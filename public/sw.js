@@ -1,8 +1,8 @@
 /* TON Home Inspector service worker — app-shell precache + runtime caching. */
-const VERSION = "v6";
+const VERSION = "v7";
 const SHELL = `ton-shell-${VERSION}`;
 const STATIC = `ton-static-${VERSION}`;
-const ROUTES = ["/", "/admin", "/projects", "/project", "/property", "/inspect", "/checklist", "/rooms", "/defects", "/defect", "/reports", "/profile", "/login", "/register", "/forgot-password", "/reset-password"];
+const ROUTES = ["/", "/admin", "/plans", "/projects", "/project", "/property", "/inspect", "/checklist", "/rooms", "/defects", "/defect", "/reports", "/profile", "/login", "/register", "/forgot-password", "/reset-password"];
 const ASSET_RE = /\/_next\/static\/[^"'\s)]+/g;
 
 async function precache() {

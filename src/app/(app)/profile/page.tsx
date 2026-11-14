@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { KeyRound, LogOut, RefreshCw, ShieldCheck } from "lucide-react";
+import { Crown, KeyRound, LogOut, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { profileSchema } from "@/lib/domain/schemas";
 import { ROLE_META } from "@/lib/domain/labels";
@@ -59,6 +59,7 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2 text-sm">บทบาทหลัก <Badge tone="accent">{auth.isSystemAdmin ? "ผู้ดูแลระบบ" : ROLE_META[role].label}</Badge><span className="text-muted-foreground">{auth.isSystemAdmin ? "จัดการบัญชีผู้ใช้ทั้งระบบ" : ROLE_META[role].hint}</span></div>
+            {auth.mode === "cloud" && !auth.isSystemAdmin && <Button asChild variant="outline" className="w-full sm:w-auto"><Link href="/plans"><Crown className="size-4" />แพ็กเกจสมาชิก & สิทธิ์ใช้งาน</Link></Button>}
             {auth.isSystemAdmin && <Button asChild variant="outline" className="w-full sm:w-auto"><Link href="/admin"><ShieldCheck className="size-4" />เปิดหน้าผู้ดูแลระบบ</Link></Button>}
             {auth.mode === "cloud" ? (
               <>

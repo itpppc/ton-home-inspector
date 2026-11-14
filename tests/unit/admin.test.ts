@@ -16,7 +16,7 @@ const rows = [
 
 describe("admin dashboard helpers", () => {
   it("computes stats", () => {
-    expect(adminStats(rows, NOW)).toEqual({ total: 3, newLast30: 2, activeLast30: 1, suspended: 1, admins: 1, projects: 3, properties: 4 });
+    expect(adminStats(rows, NOW)).toEqual({ total: 3, newLast30: 2, activeLast30: 1, suspended: 1, admins: 1, paid: 0, projects: 3, properties: 4 });
     expect(adminStats([], NOW).total).toBe(0);
   });
   it("filters by role, suspension and Thai/English search", () => {

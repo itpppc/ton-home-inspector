@@ -125,8 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await bindLocalData(s.user.id);
       setStatus("signed-in");
       void loadProfile(s.user.id);
+      // Cloud accounts start empty: a seeded demo house would use up the FREE plan's only slot.
       syncEngine.start(sb, s.user.id, async () => {
-        await seedDefaultData(s.user.id);
         await loadProfile(s.user.id);
       });
     };

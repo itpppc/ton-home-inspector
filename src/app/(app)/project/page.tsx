@@ -20,6 +20,8 @@ import { PropertyForm } from "@/features/properties/property-form";
 import { MembersPanel } from "@/features/projects/members-panel";
 import { useIdParam } from "@/components/app/use-id-param";
 import { formatDate } from "@/lib/utils";
+import { usePlan } from "@/features/plans/use-plan";
+import { UpgradeDialog } from "@/features/plans/plan-ui";
 
 function ProjectDetail() {
   const id = useIdParam();
@@ -27,6 +29,8 @@ function ProjectDetail() {
   const auth = useAuth();
   const [addOpen, setAddOpen] = React.useState(false);
   const [withTemplate, setWithTemplate] = React.useState(true);
+  const [limitOpen, setLimitOpen] = React.useState(false);
+  const plan = usePlan();
   const data = useLiveQuery(async () => {
     if (!id) return null;
     const db = getDB();
@@ -40,6 +44,8 @@ function ProjectDetail() {
   if (data === null) return <EmptyState icon={FolderX} title="ไม่พบโครงการ" action={<Button asChild variant="outline"><Link href="/projects">กลับ</Link></Button>} />;
   const { project, properties } = data;
   const canEdit = auth.canEdit(project.id, project.owner_id);
+  // Houses count against the project OWNER's plan; for someone else's project the server decides.
+  const quota = project.owner_id === auth.userId ? plan.quota("properties") : { allowed: true, used: 0, limit: null };
   const isAdmin = auth.isAdmin(project.id, project.owner_id);
 
   return (
@@ -67,7 +73,7 @@ function ProjectDetail() {
           <Card>
             <CardHeader className="flex-row items-center justify-between">
               <CardTitle>บ้านในโครงการ ({properties.length})</CardTitle>
-              {canEdit && <Button size="sm" onClick={() => setAddOpen(true)}><Plus />เพิ่มบ้าน</Button>}
+              {canEdit && <Button size="sm" onClick={() => (quota.allowed ? setAddOpen(true) : setLimitOpen(true))}><Plus />เพิ่มบ้าน</Button>}
             </CardHeader>
             <CardContent>
               {properties.length === 0 ? <p className="text-sm text-muted-foreground">ยังไม่มีบ้าน</p> : (
@@ -92,6 +98,7 @@ function ProjectDetail() {
         </div>
       </div>
 
+      <UpgradeDialog open={limitOpen} onOpenChange={setLimitOpen} kind="properties" quota={quota} />
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent title="เพิ่มบ้าน" description={project.name} className="sm:max-w-2xl">
           <PropertyForm submitLabel="เพิ่มบ้าน"

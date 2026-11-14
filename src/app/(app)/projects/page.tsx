@@ -20,12 +20,18 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageHeader } from "@/components/app/app-shell";
 import { ProjectForm } from "@/features/projects/project-form";
 import { formatDate } from "@/lib/utils";
+import { usePlan } from "@/features/plans/use-plan";
+import { UpgradeDialog } from "@/features/plans/plan-ui";
 
 export default function ProjectsPage() {
   const ws = useWorkspace();
   const auth = useAuth();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const [limitOpen, setLimitOpen] = React.useState(false);
+  const plan = usePlan();
+  const quota = plan.quota("projects");
+  const startCreate = () => (quota.allowed ? setOpen(true) : setLimitOpen(true));
   const progress = useLiveQuery(async () => {
     const items = await getDB().checklist_items.filter(alive).toArray();
     const map = new Map<string, number>();
@@ -38,12 +44,12 @@ export default function ProjectsPage() {
       <PageHeader
         title="โครงการ & บ้าน"
         description="จัดการโครงการ บ้านแต่ละหลัง วันโอน และสิทธิ์แจ้งเก็บงาน"
-        actions={auth.canCreateProject && <Button onClick={() => setOpen(true)}><Plus />สร้างโครงการ</Button>}
+        actions={auth.canCreateProject && <Button onClick={startCreate}><Plus />สร้างโครงการ</Button>}
       />
       {ws.loading ? (
         <div className="h-32 animate-pulse rounded-xl bg-muted" />
       ) : ws.projects.length === 0 ? (
-        <EmptyState icon={FolderKanban} title="ยังไม่มีโครงการ" body="สร้างโครงการแรกเพื่อเริ่มเพิ่มบ้านและ Checklist" action={auth.canCreateProject && <Button onClick={() => setOpen(true)}><Plus />สร้างโครงการ</Button>} />
+        <EmptyState icon={FolderKanban} title="ยังไม่มีโครงการ" body="สร้างโครงการแรกเพื่อเริ่มเพิ่มบ้านและ Checklist" action={auth.canCreateProject && <Button onClick={startCreate}><Plus />สร้างโครงการ</Button>} />
       ) : (
         <div className="space-y-4">
           {ws.projects.map((pj) => {
@@ -83,6 +89,7 @@ export default function ProjectsPage() {
           })}
         </div>
       )}
+      <UpgradeDialog open={limitOpen} onOpenChange={setLimitOpen} kind="projects" quota={quota} />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent title="สร้างโครงการใหม่" description="หลังสร้างแล้วจึงเพิ่มบ้านในโครงการ">
           <ProjectForm
