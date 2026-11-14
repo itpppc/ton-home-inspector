@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TON Home Inspector
 
-## Getting Started
+> INSIGHT • AUTOMATE • GROW — Professional Home Inspection & Defect Management (PWA, offline-first)
 
-First, run the development server:
+Default project: **Siri Place Rama 2** · plot **1240-032002** · model **TH99B**.
 
+## Stack
+Next.js 15 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 · shadcn/ui (Radix) · Lucide · Supabase (Auth, Postgres + RLS, Storage) · Dexie (IndexedDB) · Zod + React Hook Form · Recharts · Vitest · Playwright
+
+## Architecture (short)
+- **Offline-first:** every write goes to IndexedDB + an outbox in one transaction (`src/lib/db/mutations.ts`), then the sync engine (`src/lib/sync/engine.ts`) pushes to Supabase and pulls deltas by `server_updated_at` (Last-Write-Wins per row).
+- **Routes use `?id=`** (not `[id]`) so the service worker can serve any record offline from one cached page.
+- **Local mode:** without Supabase env vars the app runs fully on-device; after the first login, local data is adopted by the account and synced.
+- **Security:** RLS on every table, project-level roles (ADMIN / INSPECTOR / VIEWER), private photo bucket. See `docs/DATABASE_SCHEMA.md`.
+- **Claim deadline:** `transfer_date_actual + claim_window_days` (default 15, transfer day excluded). The planned date is reference only (`src/lib/domain/deadline.ts`).
+
+## Getting started
 ```bash
+npm ci
+cp .env.example .env.local   # optional: fill Supabase keys
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Supabase setup
+1. Create a project, then apply `supabase/migrations/*.sql` in order (`supabase db push` or the SQL editor).
+2. Auth → URL Configuration: set Site URL and add `https://<domain>/auth/callback` to Redirect URLs.
+3. Put the project URL and anon key in `.env.local` / Vercel env.
+4. Promote an admin if needed: `update profiles set role = 'ADMIN' where email = '...';`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+| Command | What |
+|---|---|
+| `npm run typecheck` | TypeScript |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit tests (domain, repositories, sync merge) |
+| `npm run test:e2e` | Playwright (mobile + desktop, offline) — run `npm run build` first |
+| `DATABASE_URL=... node supabase/tests/rls.test.mjs` | RLS/trigger integration test (apply `supabase/tests/supabase_shim.sql` + migrations to a plain Postgres first) |
