@@ -1,12 +1,37 @@
 "use client";
 import * as React from "react";
-import { Ban, Check, ChevronDown, RotateCcw, X, Repeat } from "lucide-react";
-import type { ChecklistItem, ItemStatus } from "@/lib/domain/types";
-import { ITEM_STATUS_META, PRIORITY_META } from "@/lib/domain/labels";
+import Link from "next/link";
+import { Ban, Bug, Check, ChevronDown, HardHat, RotateCcw, X, Repeat } from "lucide-react";
+import { toast } from "sonner";
+import type { ChecklistItem, Defect, ItemStatus, Property, Room } from "@/lib/domain/types";
+import { DEFECT_STATUS_META, ITEM_STATUS_META, PRIORITY_META, SCOPE_META, SEVERITY_META } from "@/lib/domain/labels";
 import { setItemNote, setItemStatus } from "@/lib/db/repo";
+import { createDefect } from "@/lib/db/defects";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/input";
+import { DefectForm } from "@/features/defects/defect-form";
+import { PhotoCapture } from "@/features/photos/photo-capture";
+import { PhotoGallery, usePhotos } from "@/features/photos/photo-gallery";
 import { cn, formatDateTime } from "@/lib/utils";
+
+/** Shared (referentially stable) context so memoised cards do not re-render on every filter change. */
+export interface ItemShared {
+  property: Pick<Property, "id" | "project_id">;
+  rooms: Room[];
+  categories: string[];
+}
+
+function ItemPhotos({ item, readOnly }: { item: ChecklistItem; readOnly: boolean }) {
+  const photos = usePhotos({ itemId: item.id });
+  return (
+    <div className="mt-2 space-y-2">
+      <PhotoGallery photos={photos} canDelete={!readOnly} />
+      {!readOnly && <PhotoCapture size="sm" kind="ITEM" label="ถ่ายรูปประกอบ" target={{ project_id: item.project_id, property_id: item.property_id, item_id: item.id }} />}
+    </div>
+  );
+}
 
 const OPTIONS: { status: ItemStatus; label: string; icon: React.ComponentType<{ className?: string }>; on: string }[] = [
   { status: "PASS", label: "ผ่าน", icon: Check, on: "bg-success text-white border-success" },
@@ -23,8 +48,10 @@ const RAIL: Record<ItemStatus, string> = {
   NOT_APPLICABLE: "before:bg-secondary",
 };
 
-export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly }: { item: ChecklistItem; userId: string | null; readOnly: boolean }) {
+export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly, shared, categoryName, defects }: { item: ChecklistItem; userId: string | null; readOnly: boolean; shared?: ItemShared; categoryName: string; defects: Defect[] }) {
   const [open, setOpen] = React.useState(false);
+  const [defectOpen, setDefectOpen] = React.useState(false);
+  const unresolved = defects.filter((d) => d.status !== "VERIFIED");
   const [note, setNote] = React.useState(item.note ?? "");
   React.useEffect(() => setNote(item.note ?? ""), [item.note]);
   const detailsId = `d-${item.id}`;
@@ -37,6 +64,7 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly }:
           <div className="mb-1 flex flex-wrap items-center gap-1.5">
             <span className="font-mono text-[11px] text-muted-foreground">{item.code}</span>
             {item.priority !== "LOW" && item.priority !== "MEDIUM" && <Badge tone={PRIORITY_META[item.priority].tone}>{PRIORITY_META[item.priority].label}</Badge>}
+            {item.scope === "ENGINEERING" && <Badge tone={SCOPE_META.ENGINEERING.tone}><HardHat className="size-3" aria-hidden />{SCOPE_META.ENGINEERING.short}</Badge>}
             {item.status !== "NOT_CHECKED" && <Badge tone={ITEM_STATUS_META[item.status].tone}>{ITEM_STATUS_META[item.status].label}</Badge>}
           </div>
           <h3 className="font-medium leading-snug">{item.title}</h3>
@@ -61,7 +89,14 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly }:
           const active = item.status === status;
           return (
             <button key={status} type="button" disabled={readOnly} aria-pressed={active}
-              onClick={() => void setItemStatus(item.id, active ? "NOT_CHECKED" : status, userId)}
+              onClick={() => {
+                const nextStatus = active ? "NOT_CHECKED" : status;
+                if (unresolved.length > 0 && (nextStatus === "PASS" || nextStatus === "NOT_CHECKED")) {
+                  toast.error("หัวข้อนี้มี Defect ที่ยังไม่ปิด — ปิดงานที่หน้า Defect (ตรวจซ้ำผ่าน) แล้วระบบจะเปลี่ยนเป็น “ผ่าน” ให้เอง");
+                  return;
+                }
+                void setItemStatus(item.id, nextStatus, userId);
+              }}
               className={cn("flex min-h-11 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-colors disabled:opacity-50 sm:flex-row sm:gap-1.5 sm:text-sm", active ? on : "bg-card hover:bg-muted")}>
               <Icon className="size-4" aria-hidden />{label}
             </button>
@@ -76,6 +111,40 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly }:
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => { if ((item.note ?? "") !== note.trim()) void setItemNote(item.id, note); }} />
         </div>
+      )}
+      {shared && (item.status === "FAIL" || defects.length > 0) && (
+        <div className="mt-2 space-y-1.5 rounded-lg bg-danger/5 p-2.5" data-testid="item-defects">
+          {defects.map((d) => (
+            <Link key={d.id} href={`/defect?id=${d.id}`} className="flex flex-wrap items-center gap-1.5 text-sm hover:underline">
+              <Bug className="size-4 text-danger" aria-hidden /><span className="font-mono text-xs">{d.code}</span>
+              <Badge tone={SEVERITY_META[d.severity].tone}>{SEVERITY_META[d.severity].label}</Badge>
+              <Badge tone={DEFECT_STATUS_META[d.status].tone}>{DEFECT_STATUS_META[d.status].label}</Badge>
+            </Link>
+          ))}
+          {item.status === "FAIL" && unresolved.length === 0 && !readOnly && (
+            <Button size="sm" variant="destructive" onClick={() => setDefectOpen(true)}><Bug />บันทึกเป็น Defect</Button>
+          )}
+        </div>
+      )}
+      {showDetails && <ItemPhotos item={item} readOnly={readOnly} />}
+      {shared && (
+        <Dialog open={defectOpen} onOpenChange={setDefectOpen}>
+          {defectOpen && (
+            <DialogContent title="บันทึกเป็น Defect" description={`${item.code} ${item.title}`} className="sm:max-w-2xl">
+              <DefectForm rooms={shared.rooms} categories={shared.categories}
+                prefill={{ title: item.title, description: item.note, category: categoryName, room_id: item.room_id, priority: item.priority, scope: item.scope }}
+                onSubmit={async (v) => {
+                  try {
+                    const d = await createDefect({ property: shared.property, values: v, itemId: item.id, actor: userId });
+                    toast.success(`บันทึก ${d.code} แล้ว — ถ่ายรูปหลักฐานได้ที่หน้า Defect`);
+                    setDefectOpen(false);
+                  } catch (e) {
+                    toast.error(e instanceof Error ? e.message : "บันทึกไม่สำเร็จ");
+                  }
+                }} />
+            </DialogContent>
+          )}
+        </Dialog>
       )}
       {item.status !== "NOT_CHECKED" && !readOnly && (
         <button type="button" onClick={() => void setItemStatus(item.id, "NOT_CHECKED", userId)} className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">

@@ -1,6 +1,6 @@
 # TON Home Inspector — Task Tracker
 
-> อัปเดต: 14 Nov 2026 (Phase 1 build) · Legend: ✅ เสร็จ · 🟡 กำลังทำ · ⬜ ยังไม่เริ่ม · ⏸ รออนุมัติ/ข้อมูล
+> อัปเดต: 14 Nov 2026 (Phase 2 build) · Legend: ✅ เสร็จ · 🟡 กำลังทำ · ⬜ ยังไม่เริ่ม · ⏸ รออนุมัติ/ข้อมูล
 > กติกา: ทำทีละขั้น รายงานผล แล้ว **รอ TON AI สั่งก่อนเริ่มขั้นถัดไปทุกครั้ง**
 
 ## Key Dates
@@ -36,8 +36,8 @@
 | P1-7 | Property page: ข้อมูลบ้าน, **บันทึกวันโอนจริง**, Deadline banner, .ics | 2h | ✅ (ยกเว้น .ics) |
 | P1-8 | **Inspection checklist**: filter หมวด/ห้อง/สถานะ, tap status, note, ค้นหา | 3h | ✅ |
 | P1-9 | Checklist editor: เพิ่ม/แก้/ลบ/เรียงหัวข้อและหมวด | 2h | ✅ + คัดลอกจากบ้านอื่น |
-| P1-10 | **Photo capture**: กล้องมือถือ, บีบอัด, เก็บ IndexedDB, gallery | 2h | ⬜ |
-| P1-11 | **Defect**: สร้างจาก FAIL, severity, ตำแหน่ง, workflow, history, Before/After | 3h | ⬜ |
+| P1-10 | **Photo capture**: กล้องมือถือ, บีบอัด, เก็บ IndexedDB, gallery | 2h | ✅ Phase 2 (+ อัปโหลด Storage ก่อน push แถวรูป) |
+| P1-11 | **Defect**: สร้างจาก FAIL, severity, ตำแหน่ง, workflow, history, Before/After | 3h | ✅ Phase 2 |
 | P1-12 | Dashboard: KPI 9 ตัว + Progress + กราฟ 4 แบบ | 2h | ✅ |
 | P1-13 | **PDF report** (jsPDF + Sarabun) + Print layout A4 | 3h | ⬜ |
 | P1-14 | **Excel export** (Summary / Checklist / Defects / History) | 1.5h | ⬜ |
@@ -88,3 +88,17 @@
 3. ชื่อ GitHub repo
 4. อนุมัติสร้าง Supabase project
 5. ผังห้อง TH99B จริง (ถ้ามี)
+
+---
+
+## Phase 2 — Inspection Engine (14 Nov 2026)
+| ID | Task | Status |
+|---|---|---|
+| P2-1 | Room Management: /rooms (เพิ่ม/แก้ชื่อ/ลบ/เรียง/คัดลอกหัวข้อไปห้องอื่น), Dexie v2 + migrate ตำแหน่งเดิมเป็นห้อง | ✅ |
+| P2-2 | Dynamic Checklist: ห้อง (room_id) + ประเภทการตรวจ ทั่วไป/วิศวกรรม, กรองตามห้อง | ✅ |
+| P2-3 | Camera Upload: กล้อง/แกลเลอรี, บีบอัด 1600px, เก็บ IndexedDB พร้อม outbox ในธุรกรรมเดียว, upload Storage ก่อน push | ✅ |
+| P2-4 | Defect Management: /defects (แท็บ/กรอง/ค้นหา), /defect (สถานะ, ประวัติ, รูปก่อน-หลัง, แก้ไข/ลบ) | ✅ |
+| P2-5 | Severity: แนะนำแบบ rule-based (ไม่ใช่ AI) แก้ไขได้ + flag ให้วิศวกรตรวจ + disclaimer | ✅ |
+| P2-6 | Reinspection: FIXED → VERIFIED / REOPENED (ต้องมีเหตุผล), หัวข้อตรวจ sync สถานะอัตโนมัติ | ✅ |
+| P2-7 | Tests: unit 53 · E2E 22 (mobile+desktop) รวม workflow พบปัญหา→ปิดงาน และถ่ายรูปออฟไลน์ · RLS 59 | ✅ |
+| P2-8 | Apply migration 0004 บน Supabase (ยังรอการอนุมัติ/ยืนยัน) | ⏸ |

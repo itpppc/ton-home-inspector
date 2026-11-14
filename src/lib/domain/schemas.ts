@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isValidIsoDate } from "./deadline";
-import { CONSTRUCTION_STATUSES, PRIORITIES, SEVERITIES } from "./types";
+import { CONSTRUCTION_STATUSES, INSPECTION_SCOPES, PRIORITIES, SEVERITIES } from "./types";
 
 const optionalText = (max = 500) =>
   z
@@ -79,15 +79,21 @@ export const propertySchema = z.object({
 export type PropertyInput = z.input<typeof propertySchema>;
 export type PropertyValues = z.output<typeof propertySchema>;
 
+const optionalId = z
+  .string()
+  .nullable()
+  .transform((v) => (v ? v : null));
+
 export const checklistItemSchema = z.object({
   category_id: z.string().min(1, "กรุณาเลือกหมวด"),
   code: z.string().trim().max(30).default(""),
-  location: optionalText(200),
+  room_id: optionalId,
   title: z.string().trim().min(1, "กรุณาระบุหัวข้อ").max(300),
   description: optionalText(2000),
   method: optionalText(2000),
   acceptance_criteria: optionalText(2000),
   priority: z.enum(PRIORITIES),
+  scope: z.enum(INSPECTION_SCOPES),
 });
 export type ChecklistItemInput = z.input<typeof checklistItemSchema>;
 export type ChecklistItemValues = z.output<typeof checklistItemSchema>;
@@ -96,13 +102,23 @@ export const defectSchema = z.object({
   title: z.string().trim().min(1, "กรุณาระบุปัญหาที่พบ").max(300),
   description: optionalText(3000),
   category: optionalText(200),
-  location: optionalText(200),
+  room_id: optionalId,
   severity: z.enum(SEVERITIES),
+  requires_engineer: z.boolean(),
   recommendation: optionalText(2000),
   due_date: optionalDate,
 });
 export type DefectInput = z.input<typeof defectSchema>;
 export type DefectValues = z.output<typeof defectSchema>;
+
+export const roomSchema = z.object({
+  name: z.string().trim().min(1, "กรุณาระบุชื่อห้อง").max(120),
+  floor: optionalText(40),
+});
+export type RoomInput = z.input<typeof roomSchema>;
+export type RoomValues = z.output<typeof roomSchema>;
+
+export const transitionNoteSchema = z.string().trim().max(2000);
 
 const email = z.string().trim().toLowerCase().email("อีเมลไม่ถูกต้อง");
 const password = z

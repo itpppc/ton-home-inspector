@@ -10,6 +10,8 @@ export function onLocalMutation(fn: Listener) {
   return () => listeners.delete(fn);
 }
 const notify = () => listeners.forEach((fn) => fn());
+/** For writers that manage their own transaction (e.g. photos). */
+export const notifyMutation = notify;
 
 function outboxEntry(table: SyncedTable, rowId: string, at: string): OutboxEntry {
   return { key: `${table}:${rowId}`, table, row_id: rowId, queued_at: at, attempts: 0, last_error: null };

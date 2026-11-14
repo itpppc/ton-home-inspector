@@ -121,6 +121,57 @@ r = await as(A, "update public.properties set transfer_date_actual='2026-11-18' 
 r = await as(A, "select claim_deadline::text d from public.property_deadlines where id=$1", [H]);
 ok("deadline view: 18 Nov + 15 = 3 Dec", r.rows[0]?.d === "2026-12-03", JSON.stringify(r));
 
+
+// ── Phase 2: rooms, scope, photos ──────────────────────────────────────────────
+const R1 = id(), R2 = id(), H2 = id();
+r = await as(I, "insert into public.rooms (id, project_id, property_id, name, floor, sort_order) values ($1,$2,$3,'ห้องนั่งเล่น','ชั้น 1',10)", [R1, P, H]);
+ok("inspector creates room", !r.error, r.error);
+r = await as(V, "insert into public.rooms (id, project_id, property_id, name) values ($1,$2,$3,'x')", [id(), P, H]);
+ok("viewer cannot create room", !!r.error);
+r = await as(V, "select * from public.rooms");
+ok("viewer can read rooms", r.rows.length === 1);
+r = await as(B, "select * from public.rooms");
+ok("outsider cannot read rooms", r.rows.length === 0);
+r = await as(B, "insert into public.rooms (id, project_id, property_id, name) values ($1,$2,$3,'x')", [id(), P, H]);
+ok("outsider cannot create room", !!r.error);
+r = await as(I, "insert into public.rooms (id, project_id, property_id, name) values ($1,$2,$3,'')", [id(), P, H]);
+ok("empty room name rejected", !!r.error);
+r = await as(B, "insert into public.rooms (id, project_id, property_id, name) values ($1,$2,$3,'ข้ามโครงการ')", [id(), P2, H]);
+ok("room cannot point at another project's property", !!r.error);
+
+await as(A, "insert into public.properties (id, project_id, name) values ($1,$2,'บ้านหลังที่ 2')", [H2, P]);
+await as(A, "insert into public.rooms (id, project_id, property_id, name) values ($1,$2,$3,'ห้องหลังที่ 2')", [R2, P, H2]);
+r = await as(I, "update public.checklist_items set room_id=$2, scope='ENGINEERING' where id=$1", [IT, R1]);
+ok("item links to a room of its own property + engineering scope", r.count === 1, r.error);
+r = await as(I, "update public.checklist_items set room_id=$2 where id=$1", [IT, R2]);
+ok("item cannot link to a room of another property", !!r.error);
+r = await as(I, "update public.checklist_items set scope='STRUCTURAL' where id=$1", [IT]);
+ok("invalid scope rejected", !!r.error);
+r = await as(I, "update public.defects set room_id=$2, requires_engineer=true where id=$1", [D, R1]);
+ok("defect links to room + requires_engineer", r.count === 1, r.error);
+r = await as(I, "update public.defects set room_id=$2 where id=$1", [D, R2]);
+ok("defect cannot link to a room of another property", !!r.error);
+
+r = await as(I, "delete from public.rooms where id=$1", [R1]);
+ok("inspector cannot hard-delete a room", r.count === 0);
+r = await as(I, "update public.rooms set name='ห้องรับแขก', deleted_at = now() where id=$1", [R1]);
+ok("inspector renames / soft-deletes room (sync path)", r.count === 1, r.error);
+
+const PH = id();
+r = await as(I, "insert into public.photos (id, project_id, property_id, defect_id, kind, storage_path, width, height, size_bytes) values ($1,$2,$3,$4,'DEFECT',$5,1600,1200,250000)", [PH, P, H, D, `${P}/${PH}.jpg`]);
+ok("inspector adds defect photo row", !r.error, r.error);
+r = await as(V, "insert into public.photos (id, project_id, property_id, defect_id, kind) values ($1,$2,$3,$4,'AFTER_FIX')", [id(), P, H, D]);
+ok("viewer cannot add photo", !!r.error);
+r = await as(I, "insert into public.photos (id, project_id, property_id, kind) values ($1,$2,$3,'ITEM')", [id(), P, H]);
+ok("photo needs a defect or an item", !!r.error);
+r = await as(B, "select * from public.photos");
+ok("outsider cannot read photos", r.rows.length === 0);
+r = await as(I, "update public.photos set deleted_at = now() where id=$1", [PH]);
+ok("inspector soft-deletes photo", r.count === 1, r.error);
+
+r = await as(A, "delete from public.rooms where id=$1", [R2]);
+ok("admin hard-deletes room; items keep working (room_id set null)", !r.error, r.error);
+
 r = await as(A, "update public.projects set deleted_at = now() where id=$1", [P]);
 ok("admin can soft-delete project", r.count === 1, r.error);
 

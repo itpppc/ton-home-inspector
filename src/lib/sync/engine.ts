@@ -1,6 +1,7 @@
 "use client";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SYNC_TABLES, type SyncedRow, type SyncedTable } from "@/lib/domain/types";
+import { SYNC_TABLES, type Photo, type SyncedRow, type SyncedTable } from "@/lib/domain/types";
+import { PHOTO_BUCKET } from "@/lib/supabase/config";
 import { getDB, type OutboxEntry } from "@/lib/db/local";
 import { onLocalMutation } from "@/lib/db/mutations";
 
@@ -28,6 +29,32 @@ function toRemote(row: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(row)) if (!LOCAL_ONLY_FIELDS.has(k)) out[k] = v;
   return out;
+}
+
+/**
+ * Uploads the on-device JPEG of each photo to private Storage BEFORE its row is pushed, so a synced
+ * row never points at a missing file. Returns the ids whose upload failed (row stays queued, blob stays local).
+ * Soft-deleted photos skip the upload — their binary is no longer needed on this device either.
+ */
+export async function uploadPhotoBlobs(client: Pick<SupabaseClient, "storage">, photos: Photo[]): Promise<{ failed: Map<string, string> }> {
+  const db = getDB();
+  const failed = new Map<string, string>();
+  for (const photo of photos) {
+    const local = await db.photo_blobs.get(photo.id);
+    if (photo.deleted_at) {
+      if (local) await db.photo_blobs.delete(photo.id);
+      continue;
+    }
+    if (!local || local.uploaded === 1) continue; // already in Storage, or authored on another device
+    if (!photo.storage_path) {
+      failed.set(photo.id, "ไม่มี storage_path");
+      continue;
+    }
+    const { error } = await client.storage.from(PHOTO_BUCKET).upload(photo.storage_path, local.blob, { contentType: "image/jpeg", upsert: true });
+    if (error) failed.set(photo.id, error.message);
+    else await db.photo_blobs.update(photo.id, { uploaded: 1 });
+  }
+  return { failed };
 }
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : String(e));
@@ -167,9 +194,19 @@ export class SyncEngine {
       for (let i = 0; i < forTable.length; i += PUSH_CHUNK) {
         const chunk = forTable.slice(i, i + PUSH_CHUNK);
         const rows = (await db.table(table).bulkGet(chunk.map((c) => c.row_id))) as (Record<string, unknown> | undefined)[];
-        const present = chunk.map((entry, k) => ({ entry, row: rows[k] })).filter((x): x is { entry: OutboxEntry; row: Record<string, unknown> } => !!x.row);
+        let present = chunk.map((entry, k) => ({ entry, row: rows[k] })).filter((x): x is { entry: OutboxEntry; row: Record<string, unknown> } => !!x.row);
         const orphans = chunk.filter((_, k) => !rows[k]);
         if (orphans.length) await db.outbox.bulkDelete(orphans.map((o) => o.key));
+        if (table === "photos" && present.length > 0) {
+          const { failed } = await uploadPhotoBlobs(client, present.map((p) => p.row as unknown as Photo));
+          for (const p of present) {
+            const reason = failed.get(p.row.id as string);
+            if (!reason) continue;
+            failures.push(`photos (อัปโหลดรูป): ${reason}`);
+            await db.outbox.update(p.entry.key, { attempts: p.entry.attempts + 1, last_error: reason });
+          }
+          present = present.filter((p) => !failed.has(p.row.id as string));
+        }
         if (present.length === 0) continue;
 
         const { error } = await client.from(table).upsert(present.map((p) => toRemote(p.row)), { onConflict: "id" });

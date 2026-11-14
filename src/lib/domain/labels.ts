@@ -1,4 +1,4 @@
-import type { ConstructionStatus, DefectStatus, ItemStatus, Priority, Role, Severity } from "./types";
+import type { ConstructionStatus, DefectStatus, InspectionScope, ItemStatus, PhotoKind, Priority, Role, Severity } from "./types";
 
 type Tone = "neutral" | "success" | "danger" | "warning" | "info" | "accent" | "primary";
 
@@ -41,6 +41,21 @@ export const DEFECT_TRANSITIONS: Record<DefectStatus, DefectStatus[]> = {
   FIXED: ["VERIFIED", "REOPENED"],
   REOPENED: ["SUBMITTED", "IN_PROGRESS", "FIXED"],
   VERIFIED: ["REOPENED"],
+};
+
+export const SCOPE_META: Record<InspectionScope, { label: string; short: string; hint: string; tone: Tone }> = {
+  GENERAL: { label: "ตรวจทั่วไป", short: "ทั่วไป", hint: "ตรวจด้วยสายตา/เครื่องมือพื้นฐาน", tone: "neutral" },
+  ENGINEERING: { label: "ตรวจทางวิศวกรรม (คัดกรอง)", short: "วิศวกรรม", hint: "คัดกรองเบื้องต้นเท่านั้น ต้องให้วิศวกรผู้มีใบอนุญาตยืนยัน", tone: "accent" },
+};
+
+/** Shown wherever engineering findings appear (UI, reports). The app never certifies structural safety. */
+export const ENGINEERING_DISCLAIMER =
+  "ผลการตรวจหมวดวิศวกรรมในระบบนี้เป็นการคัดกรองและบันทึกหลักฐานเบื้องต้นเท่านั้น ไม่ใช่การรับรองความปลอดภัยของโครงสร้างหรือระบบไฟฟ้า กรุณาให้วิศวกรผู้มีใบอนุญาตประกอบวิชาชีพตรวจสอบและยืนยันก่อนตัดสินใจ";
+
+export const PHOTO_KIND_META: Record<PhotoKind, { label: string }> = {
+  DEFECT: { label: "ก่อนแก้ไข" },
+  AFTER_FIX: { label: "หลังแก้ไข" },
+  ITEM: { label: "ภาพประกอบการตรวจ" },
 };
 
 export const CONSTRUCTION_STATUS_META: Record<ConstructionStatus, string> = {

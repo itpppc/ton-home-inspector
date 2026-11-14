@@ -21,6 +21,10 @@ export type DefectStatus = (typeof DEFECT_STATUSES)[number];
 export const CONSTRUCTION_STATUSES = ["UNDER_CONSTRUCTION", "READY_FOR_INSPECTION", "INSPECTING", "DEFECT_FIXING", "READY_TO_TRANSFER", "TRANSFERRED"] as const;
 export type ConstructionStatus = (typeof CONSTRUCTION_STATUSES)[number];
 
+export const INSPECTION_SCOPES = ["GENERAL", "ENGINEERING"] as const;
+/** ENGINEERING items are screening only — a licensed engineer must confirm; the app never certifies safety. */
+export type InspectionScope = (typeof INSPECTION_SCOPES)[number];
+
 export const PHOTO_KINDS = ["DEFECT", "AFTER_FIX", "ITEM"] as const;
 export type PhotoKind = (typeof PHOTO_KINDS)[number];
 
@@ -65,6 +69,14 @@ export interface Property extends SyncedRow {
   notes: string | null;
 }
 
+export interface Room extends SyncedRow {
+  project_id: string;
+  property_id: string;
+  name: string;
+  floor: string | null;
+  sort_order: number;
+}
+
 export interface ChecklistCategory extends SyncedRow {
   project_id: string;
   property_id: string;
@@ -76,13 +88,16 @@ export interface ChecklistItem extends SyncedRow {
   project_id: string;
   property_id: string;
   category_id: string;
+  room_id: string | null;
   code: string;
+  /** Text snapshot of the room label (kept for reports and for items without a room). */
   location: string | null;
   title: string;
   description: string | null;
   method: string | null;
   acceptance_criteria: string | null;
   priority: Priority;
+  scope: InspectionScope;
   sort_order: number;
   status: ItemStatus;
   note: string | null;
@@ -94,6 +109,7 @@ export interface Defect extends SyncedRow {
   project_id: string;
   property_id: string;
   item_id: string | null;
+  room_id: string | null;
   code: string;
   title: string;
   description: string | null;
@@ -101,6 +117,7 @@ export interface Defect extends SyncedRow {
   location: string | null;
   severity: Severity;
   status: DefectStatus;
+  requires_engineer: boolean;
   recommendation: string | null;
   found_at: string;
   due_date: string | null;
@@ -146,14 +163,15 @@ export interface Profile {
   role: Role;
 }
 
-export type SyncedTable = "projects" | "properties" | "checklist_categories" | "checklist_items" | "defects" | "defect_events" | "photos";
+export type SyncedTable = "projects" | "properties" | "rooms" | "checklist_categories" | "checklist_items" | "defects" | "defect_events" | "photos";
 
 /** Push order respects foreign keys. */
-export const SYNC_TABLES: readonly SyncedTable[] = ["projects", "properties", "checklist_categories", "checklist_items", "defects", "defect_events", "photos"];
+export const SYNC_TABLES: readonly SyncedTable[] = ["projects", "properties", "rooms", "checklist_categories", "checklist_items", "defects", "defect_events", "photos"];
 
 export interface TableRowMap {
   projects: Project;
   properties: Property;
+  rooms: Room;
   checklist_categories: ChecklistCategory;
   checklist_items: ChecklistItem;
   defects: Defect;

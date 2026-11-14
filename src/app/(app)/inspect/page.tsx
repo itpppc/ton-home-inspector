@@ -7,27 +7,31 @@ import { useAuth } from "@/providers/auth-provider";
 import { useChecklist } from "@/features/checklist/use-checklist";
 import { ItemCard } from "@/features/checklist/item-card";
 import { checklistStats } from "@/lib/domain/stats";
-import { ITEM_STATUSES, type ItemStatus } from "@/lib/domain/types";
+import { ITEM_STATUSES, type Defect, type ItemStatus } from "@/lib/domain/types";
 import { ITEM_STATUS_META } from "@/lib/domain/labels";
 import { Progress } from "@/components/ui/progress";
 import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmptyState, PageHeader } from "@/components/app/app-shell";
 import { DeadlineBanner } from "@/components/app/deadline-banner";
+import { roomLabel } from "@/lib/seed/checklist-template";
 
 const PAGE_SIZE = 40;
+const NO_DEFECTS: Defect[] = [];
 
 export default function InspectPage() {
   const ws = useWorkspace();
   const auth = useAuth();
   const data = useChecklist(ws.property?.id);
   const [category, setCategory] = React.useState("all");
-  const [location, setLocation] = React.useState("all");
+  const [roomId, setRoomId] = React.useState("all");
   const [status, setStatus] = React.useState<"all" | ItemStatus>("all");
   const [query, setQuery] = React.useState("");
   const deferredQuery = React.useDeferredValue(query.trim().toLowerCase());
   const [limit, setLimit] = React.useState(PAGE_SIZE);
-  React.useEffect(() => setLimit(PAGE_SIZE), [category, location, status, deferredQuery, ws.property?.id]);
+  React.useEffect(() => setLimit(PAGE_SIZE), [category, roomId, status, deferredQuery, ws.property?.id]);
+
+  const shared = React.useMemo(() => (data && ws.property ? { property: { id: ws.property.id, project_id: ws.property.project_id }, rooms: data.rooms, categories: data.categories.map((c) => c.name) } : null), [data, ws.property]);
 
   if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
   if (!ws.property) return <EmptyState icon={ClipboardList} title="ยังไม่ได้เลือกบ้าน" action={<Button asChild><Link href="/projects">ไปที่โครงการ</Link></Button>} />;
@@ -36,12 +40,13 @@ export default function InspectPage() {
   }
 
   const readOnly = !auth.canEdit(ws.property.project_id, ws.project?.owner_id);
+  const roomName = new Map(data.rooms.map((r) => [r.id, roomLabel(r)]));
   const stats = checklistStats(data.items);
   const filtered = data.items.filter((i) =>
     (category === "all" || i.category_id === category) &&
-    (location === "all" || i.location === location) &&
+    (roomId === "all" || (roomId === "none" ? !i.room_id : i.room_id === roomId)) &&
     (status === "all" || i.status === status) &&
-    (!deferredQuery || `${i.code} ${i.title} ${i.location ?? ""} ${i.note ?? ""}`.toLowerCase().includes(deferredQuery)),
+    (!deferredQuery || `${i.code} ${i.title} ${i.room_id ? roomName.get(i.room_id) ?? "" : ""} ${i.note ?? ""}`.toLowerCase().includes(deferredQuery)),
   );
   const catOrder = new Map(data.categories.map((c, i) => [c.id, i]));
   filtered.sort((a, b) => (catOrder.get(a.category_id)! - catOrder.get(b.category_id)!) || a.sort_order - b.sort_order);
@@ -65,9 +70,10 @@ export default function InspectPage() {
             <option value="all">ทุกหมวด</option>
             {data.categories.map((c) => <option key={c.id} value={c.id}>{c.name} ({checklistStats(data.byCategory.get(c.id) ?? []).pending})</option>)}
           </Select>
-          <Select aria-label="ตำแหน่ง" value={location} onChange={(e) => setLocation(e.target.value)}>
-            <option value="all">ทุกตำแหน่ง</option>
-            {data.locations.map((l) => <option key={l} value={l}>{l}</option>)}
+          <Select aria-label="ห้อง / ตำแหน่ง" value={roomId} onChange={(e) => setRoomId(e.target.value)}>
+            <option value="all">ทุกห้อง</option>
+            <option value="none">ทั้งหลัง / ไม่ระบุห้อง</option>
+            {data.rooms.map((r) => <option key={r.id} value={r.id}>{roomLabel(r)}</option>)}
           </Select>
           <Select aria-label="สถานะ" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
             <option value="all">ทุกสถานะ</option>
@@ -87,7 +93,7 @@ export default function InspectPage() {
             {(idx === 0 || shown[idx - 1].category_id !== item.category_id) && (
               <h2 className="pt-3 text-sm font-bold uppercase tracking-wide text-primary dark:text-secondary">{catName.get(item.category_id)}</h2>
             )}
-            <ItemCard item={item} userId={auth.userId} readOnly={readOnly} />
+            <ItemCard item={item} userId={auth.userId} readOnly={readOnly} shared={shared ?? undefined} categoryName={catName.get(item.category_id) ?? ""} defects={data.defectsByItem.get(item.id) ?? NO_DEFECTS} />
           </React.Fragment>
         ))}
       </div>

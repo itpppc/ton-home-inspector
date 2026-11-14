@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, Copy, FolderPlus, ListChecks, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, DoorOpen, FolderPlus, ListChecks, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAuth } from "@/providers/auth-provider";
@@ -9,7 +9,7 @@ import { useChecklist } from "@/features/checklist/use-checklist";
 import { ItemForm } from "@/features/checklist/item-form";
 import { applyTemplate, copyChecklist, createCategory, createItem, deleteCategory, deleteItem, move, renameCategory, updateItem } from "@/lib/db/repo";
 import type { ChecklistItem } from "@/lib/domain/types";
-import { ITEM_STATUS_META, PRIORITY_META } from "@/lib/domain/labels";
+import { ITEM_STATUS_META, PRIORITY_META, SCOPE_META } from "@/lib/domain/labels";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +44,7 @@ export default function ChecklistManagePage() {
 
   return (
     <>
-      <PageHeader title="จัดการ Checklist" description={`${property.name} · ${data.categories.length} หมวด · ${data.items.length} หัวข้อ`} />
+      <PageHeader title="จัดการ Checklist" description={`${property.name} · ${data.rooms.length} ห้อง · ${data.categories.length} หมวด · ${data.items.length} หัวข้อ`} actions={<Button asChild variant="outline"><Link href="/rooms"><DoorOpen />จัดการห้อง</Link></Button>} />
       {!canEdit && <p className="mb-3 rounded-lg bg-muted p-3 text-sm">คุณมีสิทธิ์ดูอย่างเดียว</p>}
 
       {canEdit && (
@@ -102,6 +102,7 @@ export default function ChecklistManagePage() {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="font-mono text-[11px] text-muted-foreground">{it.code}</span>
                           <Badge tone={PRIORITY_META[it.priority].tone}>{PRIORITY_META[it.priority].label}</Badge>
+                          {it.scope === "ENGINEERING" && <Badge tone={SCOPE_META.ENGINEERING.tone}>{SCOPE_META.ENGINEERING.short}</Badge>}
                           {it.status !== "NOT_CHECKED" && <Badge tone={ITEM_STATUS_META[it.status].tone}>{ITEM_STATUS_META[it.status].short}</Badge>}
                         </div>
                         <p className="text-sm font-medium">{it.title}</p>
@@ -130,7 +131,7 @@ export default function ChecklistManagePage() {
           <DialogContent title={editing.mode === "create" ? "เพิ่มหัวข้อตรวจ" : "แก้ไขหัวข้อตรวจ"} className="sm:max-w-2xl">
             <ItemForm
               categories={data.categories}
-              locations={data.locations}
+              rooms={data.rooms}
               initial={editing.mode === "edit" ? editing.item : undefined}
               defaultCategoryId={editing.mode === "create" ? editing.categoryId : undefined}
               onSubmit={async (v) => {

@@ -257,6 +257,17 @@ NEXT_PUBLIC_SITE_URL=https://<vercel-domain>
 | **P3** Deploy | Vercel + Supabase production, ทดสอบมือถือจริง | 18 Nov |
 | **P4** หลังโอน | Re-inspection flow เต็ม, ใบแจ้งเก็บงาน, Dashboard charts ครบ, E2E tests | ภายในช่วง 15 วันหลังโอน |
 
+### 8.1 Product Roadmap (TON AI) — ทิศทางระยะยาว, ไม่ขยาย scope ตอนนี้
+
+| Version | ขอบเขต | สถานะ |
+|---|---|---|
+| **V1.0 — Home Inspection** (Core) | ตรวจบ้าน, บันทึกภาพ, Checklist, Defect, รายงาน PDF/Excel, Offline — Pilot: TH99B | **กำลังพัฒนา** |
+| **V2.0 — AI Inspection** | AI วิเคราะห์ภาพรอยร้าว สีพอง น้ำรั่ว และจำแนกข้อบกพร่อง โดยผู้ตรวจต้องยืนยันผลเสมอ (human-in-the-loop) | Backlog |
+| **V3.0 — Multi-Project** | ผู้ตรวจหลายคน หลายโครงการ หลายบ้าน + รายงานเปรียบเทียบ | Backlog |
+| **V4.0 — Commercial Platform** | ระบบสมาชิกสำหรับผู้ซื้อบ้านและธุรกิจรับตรวจบ้าน | Backlog |
+
+Design hooks ที่ V1.0 เตรียมไว้แล้ว (ไม่มีงานเพิ่ม): `photos` แยกตาราง + Storage path ต่อ project (พร้อมให้ AI V2 อ่าน), `suggestSeverity()` แยกเป็น pure function (สลับเป็น AI ได้), RLS ระดับ project_members + roles (รองรับหลายผู้ตรวจ V3), `owner_id` ทุก project (รองรับ tenant/สมาชิก V4).
+
 ---
 
 ## 9. Risks

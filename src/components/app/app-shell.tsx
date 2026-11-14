@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, ClipboardCheck, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
+import { Bug, Building2, ClipboardCheck, DoorOpen, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { selectProperty, useWorkspace } from "@/hooks/use-workspace";
@@ -12,16 +12,19 @@ import { cn } from "@/lib/utils";
 import { BrandLockup, BrandMark } from "./brand";
 import { SyncIndicator } from "./sync-indicator";
 
+/** `mobile: false` items are desktop-sidebar only (mobile bottom nav holds 5; profile lives in the header). */
 const NAV = [
-  { href: "/", label: "Dashboard", short: "ภาพรวม", icon: LayoutDashboard },
-  { href: "/inspect", label: "ตรวจบ้าน", short: "ตรวจบ้าน", icon: ClipboardCheck },
-  { href: "/checklist", label: "จัดการ Checklist", short: "Checklist", icon: ListChecks },
-  { href: "/projects", label: "โครงการ & บ้าน", short: "โครงการ", icon: Building2 },
-  { href: "/profile", label: "บัญชีผู้ใช้", short: "บัญชี", icon: UserRound },
+  { href: "/", label: "Dashboard", short: "ภาพรวม", icon: LayoutDashboard, mobile: true },
+  { href: "/inspect", label: "ตรวจบ้าน", short: "ตรวจบ้าน", icon: ClipboardCheck, mobile: true },
+  { href: "/defects", label: "Defect", short: "Defect", icon: Bug, mobile: true },
+  { href: "/checklist", label: "จัดการ Checklist", short: "Checklist", icon: ListChecks, mobile: true },
+  { href: "/rooms", label: "ห้อง / ตำแหน่ง", short: "ห้อง", icon: DoorOpen, mobile: false },
+  { href: "/projects", label: "โครงการ & บ้าน", short: "โครงการ", icon: Building2, mobile: true },
+  { href: "/profile", label: "บัญชีผู้ใช้", short: "บัญชี", icon: UserRound, mobile: false },
 ] as const;
 
 const isActive = (pathname: string, href: string) =>
-  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`) || (href === "/projects" && (pathname === "/project" || pathname === "/property"));
+  href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`) || (href === "/projects" && (pathname === "/project" || pathname === "/property")) || (href === "/defects" && pathname === "/defect");
 
 function PropertySwitcher() {
   const { properties, projects, property } = useWorkspace();
@@ -118,6 +121,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <PropertySwitcher />
           <div className="ml-auto flex items-center gap-1.5">
             <SyncIndicator />
+            <Link href="/profile" className="grid size-10 place-items-center rounded-lg hover:bg-muted lg:hidden" aria-label="บัญชีผู้ใช้"><UserRound className="size-5" aria-hidden /></Link>
             <ThemeToggle />
           </div>
         </div>
@@ -128,7 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden" aria-label="เมนูหลัก">
         <ul className="grid grid-cols-5">
-          {NAV.map(({ href, short, icon: Icon }) => {
+          {NAV.filter((n) => n.mobile).map(({ href, short, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <li key={href}>

@@ -44,7 +44,7 @@ test.describe("Phase 1 — local mode", () => {
     await card.getByRole("button", { name: "หัวข้อ" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("หัวข้อที่ตรวจ").fill("ทดสอบระบบกริ่งไร้สาย");
-    await dialog.getByLabel("ตำแหน่ง (ชั้น/ห้อง)").fill("ชั้น 1 - หน้าบ้าน / ที่จอดรถ");
+    await dialog.getByLabel("ห้อง / ตำแหน่ง").selectOption({ index: 1 });
     await dialog.getByRole("button", { name: "บันทึก" }).click();
     await expect(card.getByText("ทดสอบระบบกริ่งไร้สาย")).toBeVisible();
     page.once("dialog", (d) => void d.accept());

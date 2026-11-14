@@ -2,15 +2,16 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { checklistItemSchema, type ChecklistItemInput, type ChecklistItemValues } from "@/lib/domain/schemas";
-import { PRIORITIES, type ChecklistCategory, type ChecklistItem } from "@/lib/domain/types";
-import { PRIORITY_META } from "@/lib/domain/labels";
+import { INSPECTION_SCOPES, PRIORITIES, type ChecklistCategory, type ChecklistItem, type Room } from "@/lib/domain/types";
+import { PRIORITY_META, SCOPE_META } from "@/lib/domain/labels";
+import { roomLabel } from "@/lib/seed/checklist-template";
 import { FormField } from "@/components/ui/form-field";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function ItemForm({ categories, locations, initial, defaultCategoryId, onSubmit }: {
+export function ItemForm({ categories, rooms, initial, defaultCategoryId, onSubmit }: {
   categories: ChecklistCategory[];
-  locations: string[];
+  rooms: Room[];
   initial?: ChecklistItem;
   defaultCategoryId?: string;
   onSubmit: (v: ChecklistItemValues) => Promise<void>;
@@ -20,12 +21,13 @@ export function ItemForm({ categories, locations, initial, defaultCategoryId, on
     defaultValues: {
       category_id: initial?.category_id ?? defaultCategoryId ?? categories[0]?.id ?? "",
       code: initial?.code ?? "",
-      location: initial?.location ?? "",
+      room_id: initial?.room_id ?? "",
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       method: initial?.method ?? "",
       acceptance_criteria: initial?.acceptance_criteria ?? "",
       priority: initial?.priority ?? "MEDIUM",
+      scope: initial?.scope ?? "GENERAL",
     },
   });
   return (
@@ -35,12 +37,17 @@ export function ItemForm({ categories, locations, initial, defaultCategoryId, on
         <FormField id="it-cat" label="หมวด" required error={errors.category_id?.message}>
           <Select {...register("category_id")}>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>
         </FormField>
-        <FormField id="it-loc" label="ตำแหน่ง (ชั้น/ห้อง)" error={errors.location?.message}>
-          <Input list="it-loc-list" {...register("location")} />
+        <FormField id="it-room" label="ห้อง / ตำแหน่ง" hint="เพิ่มห้องได้ที่เมนู “ห้อง”" error={errors.room_id?.message}>
+          <Select {...register("room_id")}>
+            <option value="">ทั้งหลัง / ไม่ระบุห้อง</option>
+            {rooms.map((r) => <option key={r.id} value={r.id}>{roomLabel(r)}</option>)}
+          </Select>
         </FormField>
-        <datalist id="it-loc-list">{locations.map((l) => <option key={l} value={l} />)}</datalist>
         <FormField id="it-pri" label="ระดับความสำคัญ" error={errors.priority?.message}>
           <Select {...register("priority")}>{PRIORITIES.map((p) => <option key={p} value={p}>{PRIORITY_META[p].label}</option>)}</Select>
+        </FormField>
+        <FormField id="it-scope" label="ประเภทการตรวจ" hint={SCOPE_META.ENGINEERING.hint} error={errors.scope?.message}>
+          <Select {...register("scope")}>{INSPECTION_SCOPES.map((s) => <option key={s} value={s}>{SCOPE_META[s].label}</option>)}</Select>
         </FormField>
         <FormField id="it-code" label="รหัส" hint="เว้นว่างเพื่อสร้างอัตโนมัติ" error={errors.code?.message}><Input {...register("code")} /></FormField>
         <FormField id="it-desc" label="คำอธิบาย" error={errors.description?.message} className="sm:col-span-2"><Textarea {...register("description")} /></FormField>

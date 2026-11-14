@@ -266,3 +266,17 @@ supabase/migrations/
   0003_storage.sql   bucket + storage policies
 ```
 TypeScript types generate ด้วย `supabase gen types typescript` → `src/lib/supabase/database.types.ts`
+
+---
+
+## Phase 2 additions (migration `0004_rooms.sql`)
+
+| Change | Detail |
+|---|---|
+| `rooms` | `id, project_id, property_id, name, floor, sort_order` + sync columns. RLS: members read, editors write, admins hard-delete (clients soft-delete). |
+| `checklist_items.room_id` | FK → rooms (`on delete set null`); `location` stays as a text snapshot for reports. |
+| `checklist_items.scope` | enum `inspection_scope` (`GENERAL` / `ENGINEERING`). Engineering = screening only; a licensed engineer must confirm. |
+| `defects.room_id`, `defects.requires_engineer` | Same snapshot rule; flag drives the engineer disclaimer in UI/PDF. |
+| Consistency trigger | A `room_id` must belong to the same property as the item/defect (and the room to the property's project). |
+
+Photos: row `storage_path = {project_id}/{photo_id}.jpg`. The client uploads the JPEG to the private `inspection-photos` bucket **before** upserting the row, so a synced row never points at a missing file.

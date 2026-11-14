@@ -3,7 +3,7 @@ import { InspectorDB, setDB, getDB } from "@/lib/db/local";
 import { alive } from "@/lib/db/mutations";
 import * as repo from "@/lib/db/repo";
 import { shouldApplyRemote } from "@/lib/sync/engine";
-import { CHECKLIST_TEMPLATE } from "@/lib/seed/checklist-template";
+import { CHECKLIST_TEMPLATE, DEFAULT_ROOMS } from "@/lib/seed/checklist-template";
 
 let n = 0;
 beforeEach(() => {
@@ -24,7 +24,7 @@ describe("seed", () => {
     expect(await db.checklist_items.count()).toBe(expectedItems);
     expect(expectedItems).toBeGreaterThan(150);
     // every write is queued for sync
-    expect(await db.outbox.count()).toBe(2 + CHECKLIST_TEMPLATE.length + expectedItems);
+    expect(await db.outbox.count()).toBe(2 + Object.keys(DEFAULT_ROOMS).length + CHECKLIST_TEMPLATE.length + expectedItems);
     const codes = (await db.checklist_items.toArray()).map((i) => i.code);
     expect(new Set(codes).size).toBe(codes.length);
   });
@@ -37,8 +37,8 @@ describe("checklist management", () => {
     const property = (await db.properties.toArray())[0];
     const cat = await repo.createCategory(property, "  งานพิเศษ ");
     expect(cat.name).toBe("งานพิเศษ");
-    const a = await repo.createItem(property, { category_id: cat.id, code: "", location: null, title: "A", description: null, method: null, acceptance_criteria: null, priority: "HIGH" });
-    const b = await repo.createItem(property, { category_id: cat.id, code: "", location: null, title: "B", description: null, method: null, acceptance_criteria: null, priority: "LOW" });
+    const a = await repo.createItem(property, { category_id: cat.id, code: "", room_id: null, scope: "GENERAL", title: "A", description: null, method: null, acceptance_criteria: null, priority: "HIGH" });
+    const b = await repo.createItem(property, { category_id: cat.id, code: "", room_id: null, scope: "GENERAL", title: "B", description: null, method: null, acceptance_criteria: null, priority: "LOW" });
     expect(a.code).not.toBe(b.code);
 
     await repo.move("checklist_items", b.id, -1);
@@ -61,7 +61,7 @@ describe("checklist management", () => {
     const project = (await db.projects.toArray())[0];
     const other = await repo.createProperty(project.id, { name: "อีกหลัง", plot_number: null, house_model: null, property_type: null, land_area_sqw: null, usable_area_sqm: null, floors: null, construction_status: "READY_FOR_INSPECTION", inspection_type: null, inspection_owner: null, transfer_date_planned: null, transfer_date_actual: null, claim_window_days: 15, warranty_info: null, price: null, booking_fee: null, cashback: null, notes: null }, { withTemplate: false });
     const foreignCat = (await db.checklist_categories.toArray())[0];
-    await expect(repo.createItem(other, { category_id: foreignCat.id, code: "", location: null, title: "x", description: null, method: null, acceptance_criteria: null, priority: "LOW" })).rejects.toThrow();
+    await expect(repo.createItem(other, { category_id: foreignCat.id, code: "", room_id: null, scope: "GENERAL", title: "x", description: null, method: null, acceptance_criteria: null, priority: "LOW" })).rejects.toThrow();
   });
 
   it("copies a checklist with fresh ids and reset statuses", async () => {

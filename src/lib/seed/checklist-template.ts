@@ -1,4 +1,4 @@
-import type { Priority } from "@/lib/domain/types";
+import type { InspectionScope, Priority } from "@/lib/domain/types";
 
 /**
  * Default pre-handover checklist for a two-storey townhouse.
@@ -7,22 +7,28 @@ import type { Priority } from "@/lib/domain/types";
  * this file only seeds new properties.
  */
 
-export const LOCATIONS = {
-  frontParking: "ชั้น 1 - หน้าบ้าน / ที่จอดรถ",
-  living: "ชั้น 1 - ห้องนั่งเล่น",
-  dining: "ชั้น 1 - ห้องรับประทานอาหาร",
-  kitchen: "ชั้น 1 - ครัว",
-  bath1: "ชั้น 1 - ห้องน้ำ",
-  stairs: "บันได / โถงบันได",
-  back: "ชั้น 1 - หลังบ้าน / ซักล้าง",
-  master: "ชั้น 2 - ห้องนอนใหญ่",
-  masterBath: "ชั้น 2 - ห้องน้ำห้องนอนใหญ่",
-  bed2: "ชั้น 2 - ห้องนอน 2",
-  bed3: "ชั้น 2 - ห้องนอน 3",
-  bath2: "ชั้น 2 - ห้องน้ำรวม",
-  roof: "หลังคา / ใต้หลังคา",
-  exterior: "ภายนอกอาคาร / รอบบ้าน",
-} as const;
+/** Default rooms of a TH99B-style two-storey townhouse (editable in-app). */
+export const DEFAULT_ROOMS = {
+  frontParking: { floor: "ชั้น 1", name: "หน้าบ้าน / ที่จอดรถ" },
+  living: { floor: "ชั้น 1", name: "ห้องนั่งเล่น" },
+  dining: { floor: "ชั้น 1", name: "ห้องรับประทานอาหาร" },
+  kitchen: { floor: "ชั้น 1", name: "ครัว" },
+  bath1: { floor: "ชั้น 1", name: "ห้องน้ำ" },
+  stairs: { floor: null, name: "บันได / โถงบันได" },
+  back: { floor: "ชั้น 1", name: "หลังบ้าน / ซักล้าง" },
+  master: { floor: "ชั้น 2", name: "ห้องนอนใหญ่" },
+  masterBath: { floor: "ชั้น 2", name: "ห้องน้ำห้องนอนใหญ่" },
+  bed2: { floor: "ชั้น 2", name: "ห้องนอน 2" },
+  bed3: { floor: "ชั้น 2", name: "ห้องนอน 3" },
+  bath2: { floor: "ชั้น 2", name: "ห้องน้ำรวม" },
+  roof: { floor: null, name: "หลังคา / ใต้หลังคา" },
+  exterior: { floor: null, name: "ภายนอกอาคาร / รอบบ้าน" },
+} as const satisfies Record<string, { floor: string | null; name: string }>;
+
+/** Display label used as the item/defect `location` snapshot. */
+export const roomLabel = (r: { floor: string | null; name: string }) => (r.floor ? `${r.floor} - ${r.name}` : r.name);
+
+export const LOCATIONS = Object.fromEntries(Object.entries(DEFAULT_ROOMS).map(([k, r]) => [k, roomLabel(r)])) as { [K in keyof typeof DEFAULT_ROOMS]: string };
 
 const L = LOCATIONS;
 const INTERIOR = [L.living, L.dining, L.kitchen, L.bath1, L.stairs, L.master, L.masterBath, L.bed2, L.bed3, L.bath2];
@@ -39,17 +45,21 @@ export interface TemplateItem {
   criteria: string;
   priority: Priority;
   locations?: readonly string[];
+  /** Overrides the category scope. */
+  scope?: InspectionScope;
 }
 
 export interface TemplateCategory {
   code: string;
   name: string;
+  scope: InspectionScope;
   items: TemplateItem[];
 }
 
 export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   {
     code: "DOC",
+    scope: "GENERAL",
     name: "เอกสารและการส่งมอบ",
     items: [
       { title: "ตรวจสอบเลขแปลง แบบบ้าน และพื้นที่ตรงตามสัญญา", method: "เทียบเลขแปลง แบบบ้าน เนื้อที่ดิน (ตร.ว.) กับสัญญาจะซื้อจะขายและโฉนด", criteria: "ข้อมูลตรงกันทุกจุด", priority: "HIGH" },
@@ -60,6 +70,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "STR",
+    scope: "ENGINEERING",
     name: "โครงสร้างและภายนอกอาคาร",
     items: [
       { title: "รอยร้าวที่ผนังภายนอก เสา และคาน", description: "รอยร้าวแนวเฉียง 45° หรือร้าวทะลุอาจบ่งชี้ปัญหาโครงสร้าง", method: "เดินรอบบ้าน ส่องไฟฉายตามมุมเสา-คาน วัดความกว้างรอยร้าวด้วยบัตรวัดรอยร้าว", criteria: "ไม่มีรอยร้าวแนวเฉียง/ทะลุ รอยร้าวผิวปูนกว้างไม่เกิน 0.3 มม.", priority: "CRITICAL", locations: [L.exterior] },
@@ -72,19 +83,21 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "ROOF",
+    scope: "GENERAL",
     name: "หลังคา รางน้ำ และฝ้าใต้หลังคา",
     items: [
       { title: "กระเบื้องหลังคา แตก เลื่อน หรือแนวไม่ตรง", method: "มองจากระยะไกล/ใช้โดรนหรือกล้องซูม ตรวจครอบสันและแนวกระเบื้อง", criteria: "ไม่มีแผ่นแตก/เลื่อน แนวตรงสม่ำเสมอ", priority: "HIGH", locations: [L.roof] },
       { title: "รอยรั่วซึมและคราบน้ำใต้หลังคา", method: "เปิดช่องเซอร์วิสฝ้า ส่องไฟฉายดูแผ่นสะท้อนความร้อน โครงหลังคา และคราบน้ำ (ตรวจหลังฝนตกจะดีที่สุด)", criteria: "ไม่มีคราบน้ำ แสงลอด หรือรอยชื้น", priority: "CRITICAL", locations: [L.roof] },
       { title: "รางน้ำฝนและท่อน้ำทิ้งจากหลังคา", method: "ฉีดน้ำทดสอบที่รางน้ำ ดูการไหลลงท่อ ตรวจข้อต่อรั่ว", criteria: "น้ำไหลไม่ขัง ไม่รั่วตามข้อต่อ ท่อยึดแน่น", priority: "MEDIUM", locations: [L.roof] },
-      { title: "ฉนวนกันความร้อนและโครงหลังคา", method: "ตรวจฉนวนปูเต็มพื้นที่ โครงเหล็กไม่เป็นสนิม รอยเชื่อมทาสีกันสนิม", criteria: "ฉนวนครบ โครงไม่มีสนิมหรือรอยเชื่อมไม่สมบูรณ์", priority: "MEDIUM", locations: [L.roof] },
+      { scope: "ENGINEERING", title: "ฉนวนกันความร้อนและโครงหลังคา", method: "ตรวจฉนวนปูเต็มพื้นที่ โครงเหล็กไม่เป็นสนิม รอยเชื่อมทาสีกันสนิม", criteria: "ฉนวนครบ โครงไม่มีสนิมหรือรอยเชื่อมไม่สมบูรณ์", priority: "MEDIUM", locations: [L.roof] },
     ],
   },
   {
     code: "WALL",
+    scope: "GENERAL",
     name: "ผนัง งานฉาบ และงานสี",
     items: [
-      { title: "รอยร้าวผนังภายใน", method: "ส่องไฟฉายเฉียงขนานผนัง ตรวจมุมวงกบประตู-หน้าต่าง", criteria: "ไม่มีรอยร้าวแนวเฉียง รอยร้าวลายงาต้องแจ้งเก็บ", priority: "HIGH", locations: INTERIOR },
+      { scope: "ENGINEERING", title: "รอยร้าวผนังภายใน", method: "ส่องไฟฉายเฉียงขนานผนัง ตรวจมุมวงกบประตู-หน้าต่าง", criteria: "ไม่มีรอยร้าวแนวเฉียง รอยร้าวลายงาต้องแจ้งเก็บ", priority: "HIGH", locations: INTERIOR },
       { title: "ความเรียบและได้ดิ่งของผนัง", method: "ใช้ไม้บรรทัดอะลูมิเนียมยาว 2 ม. ทาบผนัง ส่องไฟเฉียง", criteria: "ผนังเรียบ ไม่เป็นคลื่น ช่องว่างใต้ไม้บรรทัดไม่เกิน 3 มม.", priority: "LOW", locations: INTERIOR },
       { title: "งานสีภายใน: สีด่าง ไม่เรียบ คราบเปื้อน", method: "ตรวจด้วยสายตาภายใต้แสงไฟและแสงธรรมชาติ", criteria: "สีสม่ำเสมอ ไม่มีรอยแปรง คราบสี หรือฝุ่นติด", priority: "LOW", locations: INTERIOR },
       { title: "ผนังกลวง (เคาะฟังเสียง)", method: "ใช้ค้อนยางหรือด้ามไขควงเคาะผนังเป็นตาราง ฟังเสียงโปร่ง", criteria: "ไม่มีเสียงกลวงเป็นบริเวณกว้าง", priority: "MEDIUM", locations: INTERIOR },
@@ -93,17 +106,19 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "FLR",
+    scope: "GENERAL",
     name: "พื้นและกระเบื้อง",
     items: [
       { title: "กระเบื้องพื้นกลวง (เคาะ)", method: "ใช้ค้อนยาง/ไม้เคาะทุกแผ่น โดยเฉพาะมุมและกลางแผ่น", criteria: "ไม่มีแผ่นกลวง หรือกลวงไม่เกิน 10% ของแผ่นที่มุม", priority: "MEDIUM", locations: INTERIOR },
       { title: "กระเบื้อง/พื้นแตก บิ่น ร่องยาแนวไม่เต็ม", method: "ตรวจด้วยสายตาและลูบมือตามขอบกระเบื้อง", criteria: "ไม่แตกบิ่น ยาแนวเต็มร่องสม่ำเสมอ ระดับขอบเสมอกัน", priority: "LOW", locations: INTERIOR },
       { title: "ระดับพื้นและการลาดเอียงสู่ท่อระบายน้ำ", description: "พื้นที่เปียกต้องลาดลงท่อระบายน้ำ ห้ามน้ำขัง", method: "เทน้ำ/ลูกแก้วทดสอบการไหล ทิ้งไว้ 5-10 นาที ดูน้ำขัง", criteria: "น้ำไหลลงท่อทั้งหมด ไม่มีน้ำขังเกินฝ่ามือ", priority: "HIGH", locations: WET_AREAS },
       { title: "พื้นไม้/ลามิเนตบนชั้นสอง: เสียงดัง ยุบ โก่ง", method: "เดินทั่วห้อง ฟังเสียงลั่น ตรวจรอยต่อและการโก่งตัว", criteria: "ไม่มีเสียงลั่น ไม่ยุบ ไม่โก่ง รอยต่อชิดสนิท", priority: "MEDIUM", locations: [L.stairs, ...BEDROOMS] },
-      { title: "ขั้นบันได ลูกนอน ลูกตั้ง และราวบันได", method: "เดินขึ้นลง เขย่าราวจับ วัดความสูงลูกตั้งให้เท่ากัน", criteria: "ราวแน่นไม่โยก ขั้นเท่ากัน ไม่มีขอบคม", priority: "HIGH", locations: [L.stairs] },
+      { scope: "ENGINEERING", title: "ขั้นบันได ลูกนอน ลูกตั้ง และราวบันได", method: "เดินขึ้นลง เขย่าราวจับ วัดความสูงลูกตั้งให้เท่ากัน", criteria: "ราวแน่นไม่โยก ขั้นเท่ากัน ไม่มีขอบคม", priority: "HIGH", locations: [L.stairs] },
     ],
   },
   {
     code: "CEIL",
+    scope: "GENERAL",
     name: "ฝ้าเพดาน",
     items: [
       { title: "ฝ้าเพดาน รอยต่อ รอยร้าว และการแอ่นตัว", method: "มองแนวฝ้าในแนวเฉียง ส่องไฟฉายตามรอยต่อแผ่น", criteria: "ระนาบเรียบ ไม่แอ่น ไม่มีรอยร้าวตามรอยต่อ", priority: "MEDIUM", locations: INTERIOR },
@@ -113,6 +128,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "DOOR",
+    scope: "GENERAL",
     name: "ประตูและหน้าต่าง",
     items: [
       { title: "ประตู เปิด-ปิด ฝืด ครูด หรือปิดไม่สนิท", method: "เปิด-ปิดทุกบาน ดูช่องว่างรอบบาน ปล่อยบานค้างครึ่งทางดูว่าเหวี่ยงเองหรือไม่", criteria: "เปิดปิดลื่น ช่องว่างรอบบานสม่ำเสมอ บานไม่เหวี่ยงเอง", priority: "MEDIUM", locations: [L.frontParking, L.kitchen, L.bath1, L.back, L.master, L.masterBath, L.bed2, L.bed3, L.bath2] },
@@ -124,6 +140,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "SAN",
+    scope: "GENERAL",
     name: "สุขภัณฑ์และระบบประปา",
     items: [
       { title: "ชักโครก: กดชำระ น้ำไหลกลับ การรั่วซึม", method: "กดชักโครก 3 ครั้ง ทิ้งกระดาษทดสอบ ดูน้ำรั่วที่ฐานและวาล์ว", criteria: "ชำระหมด เติมน้ำหยุดสนิท ไม่รั่วที่ฐาน ยึดแน่นไม่โยก", priority: "HIGH", locations: BATHROOMS },
@@ -137,11 +154,12 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "ELEC",
+    scope: "GENERAL",
     name: "ระบบไฟฟ้าและแสงสว่าง",
     items: [
-      { title: "เต้ารับไฟฟ้า: ไฟเข้า ขั้ว และสายดิน", description: "ใช้ปลั๊กเทสเตอร์ (มีไฟแสดงสถานะ) ทดสอบทุกจุด", method: "เสียบปลั๊กเทสเตอร์ทุกเต้ารับ ตรวจไฟสถานะขั้ว L/N/G", criteria: "ทุกเต้ารับไฟเข้า ขั้วถูกต้อง มีสายดิน หน้ากากแน่น", priority: "CRITICAL", locations: ELECTRIC_ROOMS },
+      { scope: "ENGINEERING", title: "เต้ารับไฟฟ้า: ไฟเข้า ขั้ว และสายดิน", description: "ใช้ปลั๊กเทสเตอร์ (มีไฟแสดงสถานะ) ทดสอบทุกจุด", method: "เสียบปลั๊กเทสเตอร์ทุกเต้ารับ ตรวจไฟสถานะขั้ว L/N/G", criteria: "ทุกเต้ารับไฟเข้า ขั้วถูกต้อง มีสายดิน หน้ากากแน่น", priority: "CRITICAL", locations: ELECTRIC_ROOMS },
       { title: "สวิตช์และดวงโคม", method: "เปิด-ปิดทุกสวิตช์ ตรวจไฟติดตรงจุด หน้ากากแน่น", criteria: "ทุกดวงติด สวิตช์ไม่หลวม ไม่มีเสียงหรือกลิ่นไหม้", priority: "MEDIUM", locations: ELECTRIC_ROOMS },
-      { title: "ตู้ไฟ (Consumer unit) และเบรกเกอร์กันดูด (RCBO/RCD)", method: "เปิดตู้ ตรวจป้ายวงจร กดปุ่ม TEST ของ RCBO/RCD ต้องตัดทันที", criteria: "มีป้ายชื่อวงจรครบ RCD ตัดเมื่อกด TEST สายเรียบร้อย ไม่มีรอยไหม้", priority: "CRITICAL", locations: [L.frontParking, L.living] },
+      { scope: "ENGINEERING", title: "ตู้ไฟ (Consumer unit) และเบรกเกอร์กันดูด (RCBO/RCD)", method: "เปิดตู้ ตรวจป้ายวงจร กดปุ่ม TEST ของ RCBO/RCD ต้องตัดทันที", criteria: "มีป้ายชื่อวงจรครบ RCD ตัดเมื่อกด TEST สายเรียบร้อย ไม่มีรอยไหม้", priority: "CRITICAL", locations: [L.frontParking, L.living] },
       { title: "จุดติดตั้งเครื่องปรับอากาศและเบรกเกอร์แยก", method: "ตรวจจุดเตรียมท่อแอร์ เต้ารับ/เบรกเกอร์แยกสำหรับแอร์", criteria: "มีจุดเตรียมครบตามแบบ เบรกเกอร์แยกวงจร", priority: "MEDIUM", locations: BEDROOMS },
       { title: "กริ่ง โทรศัพท์ อินเทอร์เน็ต และ TV outlet", method: "ทดสอบกริ่ง ตรวจจุด LAN/TV ตามแบบ", criteria: "ครบตามแบบ ใช้งานได้", priority: "LOW", locations: [L.frontParking, L.living, L.master] },
       { title: "พัดลมระบายอากาศห้องน้ำ", method: "เปิดใช้งาน ทดสอบแรงดูดด้วยกระดาษทิชชู", criteria: "ทำงาน ไม่มีเสียงดังผิดปกติ ดูดอากาศได้จริง", priority: "LOW", locations: BATHROOMS },
@@ -149,6 +167,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
   },
   {
     code: "KIT",
+    scope: "GENERAL",
     name: "ครัวและบิวท์อิน",
     items: [
       { title: "เคาน์เตอร์และตู้บิวท์อิน: บานตู้ ลิ้นชัก มือจับ", method: "เปิดปิดทุกบานและลิ้นชัก ตรวจบานพับปรับระดับ", criteria: "บานตรงแนว เปิดปิดลื่น ไม่มีรอยแตก ผิวไม่บวมน้ำ", priority: "LOW", locations: [L.kitchen, L.master] },

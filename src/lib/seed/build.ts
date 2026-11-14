@@ -1,18 +1,30 @@
 import { uid } from "@/lib/utils";
-import type { ChecklistCategory, ChecklistItem } from "@/lib/domain/types";
-import { CHECKLIST_TEMPLATE, type TemplateCategory } from "./checklist-template";
+import type { ChecklistCategory, ChecklistItem, Room } from "@/lib/domain/types";
+import { CHECKLIST_TEMPLATE, DEFAULT_ROOMS, roomLabel, type TemplateCategory } from "./checklist-template";
 
-/** Expands the template into concrete category + item rows for one property. */
+/** Expands the template into concrete room, category and item rows for one property. */
 export function buildChecklist(
   projectId: string,
   propertyId: string,
   at: string,
   template: TemplateCategory[] = CHECKLIST_TEMPLATE,
-): { categories: ChecklistCategory[]; items: ChecklistItem[] } {
+  existingRooms: Room[] = [],
+): { rooms: Room[]; categories: ChecklistCategory[]; items: ChecklistItem[] } {
+  const base = { project_id: projectId, property_id: propertyId, created_at: at, updated_at: at, deleted_at: null };
+  // Reuse rooms that already exist (matched by label) so re-applying never duplicates rooms.
+  const byLabel = new Map(existingRooms.map((r) => [roomLabel(r), r.id]));
+  const maxOrder = existingRooms.reduce((m, r) => Math.max(m, r.sort_order), 0);
+  const rooms: Room[] = [];
+  Object.values(DEFAULT_ROOMS).forEach((r, i) => {
+    const label = roomLabel(r);
+    if (byLabel.has(label)) return;
+    const room: Room = { ...base, id: uid(), name: r.name, floor: r.floor, sort_order: maxOrder + (i + 1) * 10 };
+    rooms.push(room);
+    byLabel.set(label, room.id);
+  });
+
   const categories: ChecklistCategory[] = [];
   const items: ChecklistItem[] = [];
-  const base = { project_id: projectId, property_id: propertyId, created_at: at, updated_at: at, deleted_at: null };
-
   template.forEach((cat, ci) => {
     const category: ChecklistCategory = { ...base, id: uid(), name: cat.name, sort_order: (ci + 1) * 10 };
     categories.push(category);
@@ -25,6 +37,7 @@ export function buildChecklist(
           ...base,
           id: uid(),
           category_id: category.id,
+          room_id: location ? byLabel.get(location) ?? null : null,
           code: `${cat.code}-${String(n).padStart(3, "0")}`,
           location,
           title: t.title,
@@ -32,6 +45,7 @@ export function buildChecklist(
           method: t.method,
           acceptance_criteria: t.criteria,
           priority: t.priority,
+          scope: t.scope ?? cat.scope,
           sort_order: n * 10,
           status: "NOT_CHECKED",
           note: null,
@@ -41,5 +55,5 @@ export function buildChecklist(
       }
     }
   });
-  return { categories, items };
+  return { rooms, categories, items };
 }
