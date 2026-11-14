@@ -38,5 +38,5 @@ npm run dev
 | `npm run typecheck` | TypeScript |
 | `npm run lint` | ESLint |
 | `npm test` | Vitest unit tests (domain, repositories, sync merge) |
-| `npm run test:e2e` | Playwright (mobile + desktop, offline) — run `npm run build` first |
+| `npm run test:e2e` | Playwright (mobile + desktop, offline) — runs in Local mode: `npm run build` with no `.env.local` first |
 | `DATABASE_URL=... node supabase/tests/rls.test.mjs` | RLS/trigger integration test (apply `supabase/tests/supabase_shim.sql` + migrations to a plain Postgres first) |
