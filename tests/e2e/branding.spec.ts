@@ -17,3 +17,9 @@ test.describe("TON AI copyright on every surface", () => {
     await expect(footer.getByRole("link")).toHaveAttribute("href", "https://ton-ai-tech.web.app/");
   });
 });
+
+test("admin page is cloud-only and hidden from the menu in local mode", async ({ page }) => {
+  await page.goto("/admin");
+  await expect(page.getByText("ใช้ได้เมื่อเชื่อมต่อ Cloud")).toBeVisible();
+  await expect(page.getByRole("link", { name: "ผู้ดูแลระบบ" })).toHaveCount(0);
+});

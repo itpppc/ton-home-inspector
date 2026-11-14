@@ -160,7 +160,23 @@ export interface Profile {
   id: string;
   email: string | null;
   full_name: string | null;
+  /** Global role. ADMIN = system administrator (manages accounts, not customers' data). */
   role: Role;
+  /** Set when a system admin suspends the account (migration 0006). */
+  disabled_at?: string | null;
+}
+
+/** Row returned by the admin_list_users() RPC. */
+export interface AdminUserRow {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: Role;
+  created_at: string;
+  last_sign_in_at: string | null;
+  disabled_at: string | null;
+  project_count: number;
+  property_count: number;
 }
 
 export type SyncedTable = "projects" | "properties" | "rooms" | "checklist_categories" | "checklist_items" | "defects" | "defect_events" | "photos";

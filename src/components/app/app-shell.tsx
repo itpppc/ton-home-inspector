@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bug, Building2, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
+import { Ban, Bug, Building2, ShieldCheck, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { selectProperty, useWorkspace } from "@/hooks/use-workspace";
@@ -25,6 +25,7 @@ const NAV = [
   { href: "/projects", label: "โครงการ & บ้าน", short: "โครงการ", icon: Building2, mobile: true },
   { href: "/profile", label: "บัญชีผู้ใช้", short: "บัญชี", icon: UserRound, mobile: false },
 ] as const;
+const ADMIN_NAV = { href: "/admin", label: "ผู้ดูแลระบบ", short: "Admin", icon: ShieldCheck, mobile: false } as const;
 
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`) || (href === "/projects" && (pathname === "/project" || pathname === "/property")) || (href === "/defects" && pathname === "/defect");
@@ -65,7 +66,7 @@ function ThemeToggle() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { status, mode, profile, email, signOut } = useAuth();
+  const { status, mode, profile, email, signOut, isSystemAdmin, suspended } = useAuth();
   const { pending } = useSync();
 
   React.useEffect(() => {
@@ -83,6 +84,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  if (suspended) {
+    return (
+      <div className="grid min-h-dvh place-items-center p-6 pt-safe">
+        <div role="alert" className="max-w-sm space-y-3 rounded-2xl border bg-card p-6 text-center shadow-sm">
+          <Ban className="mx-auto size-10 text-danger" aria-hidden />
+          <h1 className="text-lg font-bold">บัญชีนี้ถูกระงับการใช้งาน</h1>
+          <p className="text-sm text-muted-foreground">กรุณาติดต่อผู้ดูแลระบบ ข้อมูลของคุณไม่ได้ถูกลบ และจะกลับมาใช้ได้เมื่อเปิดบัญชีอีกครั้ง</p>
+          <button type="button" onClick={() => void signOut()} className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-muted"><LogOut className="size-4" aria-hidden />ออกจากระบบ</button>
+        </div>
+      </div>
+    );
+  }
+
+  const navItems = isSystemAdmin ? [...NAV, ADMIN_NAV] : NAV;
   const onSignOut = async () => {
     if (pending > 0 && !window.confirm(`ยังมี ${pending} รายการที่ยังไม่ได้ Sync ขึ้น Cloud ต้องการออกจากระบบหรือไม่? (ข้อมูลยังอยู่ในเครื่องนี้)`)) return;
     await signOut();
@@ -96,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex print:!hidden">
         <div className="border-b border-white/10 px-5 py-5"><BrandLockup inverted /></div>
         <nav className="flex-1 space-y-1 p-3" aria-label="เมนูหลัก">
-          {NAV.map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, label, icon: Icon }) => {
             const active = isActive(pathname, href);
             return (
               <Link key={href} href={href} aria-current={active ? "page" : undefined}
@@ -108,7 +123,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
         <div className="border-t border-white/10 p-4 text-sm">
           <p className="truncate font-medium text-white">{profile?.full_name ?? email ?? "ผู้ใช้"}</p>
-          <p className="truncate text-xs opacity-75">{mode === "local" ? "Local mode · เครื่องนี้" : `${email ?? ""} · ${ROLE_META[profile?.role ?? "INSPECTOR"].label}`}</p>
+          <p className="truncate text-xs opacity-75">{mode === "local" ? "Local mode · เครื่องนี้" : `${email ?? ""} · ${isSystemAdmin ? "ผู้ดูแลระบบ" : ROLE_META[profile?.role ?? "INSPECTOR"].label}`}</p>
           {mode === "cloud" && (
             <button type="button" onClick={() => void onSignOut()} className="mt-3 inline-flex items-center gap-2 rounded-md px-2 py-1.5 text-xs hover:bg-white/10">
               <LogOut className="size-4" aria-hidden />ออกจากระบบ

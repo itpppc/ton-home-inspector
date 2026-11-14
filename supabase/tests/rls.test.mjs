@@ -189,6 +189,49 @@ ok("newer write wins", r.rows[0].status === "NEEDS_REINSPECTION" && r.rows[0].u.
 r = await as(I, "update public.checklist_items set status='NEEDS_REINSPECTION', updated_at='2026-11-14T10:10:00Z' where id=$1", [IT2]);
 ok("re-pushing the identical row (retry) is idempotent", !r.error);
 
+// ── System admin (migration 0006) ─────────────────────────────────────────────
+const SA = id();
+await db.query("insert into auth.users (id, email, last_sign_in_at) values ($1, 'admin@x.co', now())", [SA]);
+r = await as(A, "select * from public.admin_list_users()");
+ok("non-admin cannot list users", !!r.error);
+r = await as(A, "select public.admin_set_user_role($1, 'ADMIN')", [A]);
+ok("non-admin cannot grant roles via RPC", !!r.error);
+r = await as(SA, "update public.profiles set role='ADMIN' where id=$1", [SA]);
+ok("user cannot self-promote to ADMIN", !!r.error);
+await db.query("update public.profiles set role='ADMIN' where id=$1", [SA]); // SQL editor bootstrap
+r = await as(I, "update public.profiles set disabled_at=null, role='INSPECTOR' where id=$1", [I]);
+ok("user can still save own profile when role unchanged", !r.error, r.error);
+r = await as(SA, "select * from public.admin_list_users()");
+const rowA = r.rows.find((u) => u.id === A);
+ok("system admin lists every account", !r.error && r.rows.length === 6, r.error ?? r.rows.length);
+ok("list shows project/property counts", rowA?.project_count === 1 && rowA?.property_count === (await db.query("select count(*)::int c from public.properties where project_id=$1 and deleted_at is null", [P])).rows[0].c, JSON.stringify(rowA));
+ok("list includes last sign-in from auth.users", !!r.rows.find((u) => u.id === SA)?.last_sign_in_at);
+r = await as(SA, "select * from public.checklist_items");
+ok("system admin does NOT see customers' inspection data", r.rows.length === 0);
+r = await as(SA, "select public.admin_set_user_role($1, 'VIEWER')", [GV]);
+ok("system admin changes another user's role", !r.error && (await db.query("select role from public.profiles where id=$1", [GV])).rows[0].role === "VIEWER", r.error);
+r = await as(SA, "select public.admin_set_user_role($1, 'INSPECTOR')", [SA]);
+ok("system admin cannot demote themself (always ≥1 admin)", !!r.error);
+r = await as(SA, "select public.admin_set_user_disabled($1, true)", [SA]);
+ok("system admin cannot suspend themself", !!r.error);
+r = await as(SA, "update public.profiles set role='ADMIN' where id=$1", [B]);
+ok("admin direct UPDATE on others is still blocked by RLS (RPC only)", r.count === 0 || !!r.error);
+const before = (await as(I, "select count(*)::int c from public.checklist_items")).rows[0].c;
+r = await as(SA, "select public.admin_set_user_disabled($1, true)", [I]);
+ok("system admin suspends a user", !r.error, r.error);
+r = await as(I, "select count(*)::int c from public.checklist_items");
+ok("suspended user sees no project data", before > 0 && r.rows[0].c === 0, `${before} -> ${r.rows[0]?.c}`);
+r = await as(I, "update public.checklist_items set note='x' where id=$1", [IT]);
+ok("suspended user cannot write", r.count === 0);
+r = await as(I, "insert into public.projects (id, owner_id, name) values ($1,$2,'new')", [id(), I]);
+ok("suspended user cannot create projects", !!r.error);
+r = await as(I, "select disabled_at from public.profiles where id=$1", [I]);
+ok("suspended user can read own profile (to show the notice)", !!r.rows[0]?.disabled_at);
+r = await as(I, "update public.profiles set disabled_at=null where id=$1", [I]);
+ok("suspended user cannot lift own suspension", !!r.error || r.count === 0);
+r = await as(SA, "select public.admin_set_user_disabled($1, false)", [I]);
+ok("restoring the account restores access", !r.error && (await as(I, "select count(*)::int c from public.checklist_items")).rows[0].c === before);
+
 r = await as(A, "update public.projects set deleted_at = now() where id=$1", [P]);
 ok("admin can soft-delete project", r.count === 1, r.error);
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { KeyRound, LogOut, RefreshCw } from "lucide-react";
+import { KeyRound, LogOut, RefreshCw, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { profileSchema } from "@/lib/domain/schemas";
 import { ROLE_META } from "@/lib/domain/labels";
@@ -58,7 +58,8 @@ export default function ProfilePage() {
             <CardDescription>{auth.mode === "local" ? "Local mode — ข้อมูลอยู่ในเครื่องนี้เท่านั้น" : auth.email}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2 text-sm">บทบาทหลัก <Badge tone="accent">{ROLE_META[role].label}</Badge><span className="text-muted-foreground">{ROLE_META[role].hint}</span></div>
+            <div className="flex items-center gap-2 text-sm">บทบาทหลัก <Badge tone="accent">{auth.isSystemAdmin ? "ผู้ดูแลระบบ" : ROLE_META[role].label}</Badge><span className="text-muted-foreground">{auth.isSystemAdmin ? "จัดการบัญชีผู้ใช้ทั้งระบบ" : ROLE_META[role].hint}</span></div>
+            {auth.isSystemAdmin && <Button asChild variant="outline" className="w-full sm:w-auto"><Link href="/admin"><ShieldCheck className="size-4" />เปิดหน้าผู้ดูแลระบบ</Link></Button>}
             {auth.mode === "cloud" ? (
               <>
                 <ProfileForm />

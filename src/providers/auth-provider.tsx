@@ -21,6 +21,10 @@ interface AuthContextValue {
   canEdit: (projectId: string | null | undefined, ownerId?: string | null) => boolean;
   isAdmin: (projectId: string | null | undefined, ownerId?: string | null) => boolean;
   canCreateProject: boolean;
+  /** System administrator (global role ADMIN, cloud mode only). */
+  isSystemAdmin: boolean;
+  /** Account suspended by a system admin: all project data is blocked server-side. */
+  suspended: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -69,12 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (cachedM) setMemberships(cachedM);
     if (!sb || (typeof navigator !== "undefined" && !navigator.onLine)) return;
     const [p, m] = await Promise.all([
-      sb.from("profiles").select("id,email,full_name,role").eq("id", uid).maybeSingle(),
+      sb.from("profiles").select("*").eq("id", uid).maybeSingle(), // "*": tolerant of columns added by later migrations
       sb.from("project_members").select("project_id,role").eq("user_id", uid),
     ]);
     if (p.data) {
-      setProfile(p.data as Profile);
-      await setMeta(`profile:${uid}`, p.data);
+      const d = p.data as Profile;
+      const next: Profile = { id: d.id, email: d.email, full_name: d.full_name, role: d.role, disabled_at: d.disabled_at ?? null };
+      setProfile(next);
+      await setMeta(`profile:${uid}`, next);
     }
     if (m.data) {
       const map = Object.fromEntries(m.data.map((r) => [r.project_id as string, r.role as Role]));
@@ -172,7 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return r === "ADMIN" || r === "INSPECTOR";
       },
       isAdmin: (p, o) => roleFor(p, o) === "ADMIN",
-      canCreateProject: mode === "local" || (profile?.role ?? "INSPECTOR") !== "VIEWER",
+      canCreateProject: mode === "local" || ((profile?.role ?? "INSPECTOR") !== "VIEWER" && !profile?.disabled_at),
+      isSystemAdmin: mode === "cloud" && profile?.role === "ADMIN" && !profile.disabled_at,
+      suspended: mode === "cloud" && !!profile?.disabled_at,
       refreshProfile: async () => {
         if (userId) await loadProfile(userId);
       },
