@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { getDB } from "@/lib/db/local";
 import { alive } from "@/lib/db/mutations";
 import { applyTemplate, deleteProperty, updateProperty } from "@/lib/db/repo";
+import { PhotoCapture } from "@/features/photos/photo-capture";
+import { PhotoGallery, usePhotos } from "@/features/photos/photo-gallery";
 import { selectProperty } from "@/hooks/use-workspace";
 import { useAuth } from "@/providers/auth-provider";
 import { checklistStats } from "@/lib/domain/stats";
@@ -83,7 +85,27 @@ function PropertyDetail() {
           </CardContent>
         </Card>
       </div>
+      <HousePhotos projectId={property.project_id} propertyId={property.id} canEdit={canEdit} />
     </>
+  );
+}
+
+/** Front of house, floor plans and documents — shown on the report cover. */
+function HousePhotos({ projectId, propertyId, canEdit }: { projectId: string; propertyId: string; canEdit: boolean }) {
+  const photos = usePhotos({ propertyId });
+  return (
+    <Card className="mt-4">
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+        <div>
+          <CardTitle>รูปบ้าน & ผังบ้าน</CardTitle>
+          <CardDescription>รูปหน้าบ้าน ผังชั้น 1–2 หรือเอกสารจากโครงการ · แสดงในหน้าแรกของรายงาน</CardDescription>
+        </div>
+        {canEdit && <PhotoCapture target={{ project_id: projectId, property_id: propertyId }} kind="PROPERTY" size="sm" label="ถ่าย/แนบรูป" />}
+      </CardHeader>
+      <CardContent>
+        <PhotoGallery photos={photos} canDelete={canEdit} emptyText="ยังไม่มีรูป กดปุ่มรูปภาพเพื่อเลือกผังบ้านจากคลังภาพได้หลายรูปพร้อมกัน" />
+      </CardContent>
+    </Card>
   );
 }
 

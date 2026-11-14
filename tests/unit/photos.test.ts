@@ -19,6 +19,13 @@ function fakeClient(result: { error: { message: string } | null }) {
 }
 
 describe("photo capture storage", () => {
+  it("house photos (front / floor plan) need no defect or item; others still do", async () => {
+    const house = { project_id: "p1", property_id: "pr1" };
+    const p = await savePhoto({ target: house, kind: "PROPERTY", blob: blob(), width: 10, height: 10 });
+    expect(await getDB().photos.get(p.id)).toMatchObject({ kind: "PROPERTY", defect_id: null, item_id: null });
+    await expect(savePhoto({ target: house, kind: "ITEM", blob: blob(), width: 10, height: 10 })).rejects.toThrow();
+  });
+
   it("saves row + binary + outbox entry together", async () => {
     const p = await savePhoto({ target, kind: "DEFECT", blob: blob(), width: 10, height: 10 });
     const db = getDB();

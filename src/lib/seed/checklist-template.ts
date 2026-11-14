@@ -7,20 +7,24 @@ import type { InspectionScope, Priority } from "@/lib/domain/types";
  * this file only seeds new properties.
  */
 
-/** Default rooms of a TH99B-style two-storey townhouse (editable in-app). */
+/**
+ * Default rooms of the Siri Place TH99B two-storey townhouse, in walk-through order
+ * (matches the developer's floor plan; editable in-app per house).
+ */
 export const DEFAULT_ROOMS = {
   frontParking: { floor: "ชั้น 1", name: "หน้าบ้าน / ที่จอดรถ" },
   living: { floor: "ชั้น 1", name: "ห้องนั่งเล่น" },
-  dining: { floor: "ชั้น 1", name: "ห้องรับประทานอาหาร" },
-  kitchen: { floor: "ชั้น 1", name: "ครัว" },
-  bath1: { floor: "ชั้น 1", name: "ห้องน้ำ" },
-  stairs: { floor: null, name: "บันได / โถงบันได" },
-  back: { floor: "ชั้น 1", name: "หลังบ้าน / ซักล้าง" },
-  master: { floor: "ชั้น 2", name: "ห้องนอนใหญ่" },
-  masterBath: { floor: "ชั้น 2", name: "ห้องน้ำห้องนอนใหญ่" },
+  dining: { floor: "ชั้น 1", name: "ห้องทานอาหาร" },
+  kitchen: { floor: "ชั้น 1", name: "ครัว / เคาน์เตอร์" },
+  multi: { floor: "ชั้น 1", name: "ห้องอเนกประสงค์" },
+  bath3: { floor: "ชั้น 1", name: "ห้องน้ำ 3" },
+  back: { floor: "ชั้น 1", name: "ลานซักล้าง / สวนหลังบ้าน" },
+  stairs: { floor: null, name: "บันได" },
+  hall2: { floor: "ชั้น 2", name: "โถงชั้น 2" },
+  bed1: { floor: "ชั้น 2", name: "ห้องนอน 1" },
   bed2: { floor: "ชั้น 2", name: "ห้องนอน 2" },
-  bed3: { floor: "ชั้น 2", name: "ห้องนอน 3" },
-  bath2: { floor: "ชั้น 2", name: "ห้องน้ำรวม" },
+  bath1: { floor: "ชั้น 2", name: "ห้องน้ำ 1" },
+  bath2: { floor: "ชั้น 2", name: "ห้องน้ำ 2" },
   roof: { floor: null, name: "หลังคา / ใต้หลังคา" },
   exterior: { floor: null, name: "ภายนอกอาคาร / รอบบ้าน" },
 } as const satisfies Record<string, { floor: string | null; name: string }>;
@@ -31,12 +35,12 @@ export const roomLabel = (r: { floor: string | null; name: string }) => (r.floor
 export const LOCATIONS = Object.fromEntries(Object.entries(DEFAULT_ROOMS).map(([k, r]) => [k, roomLabel(r)])) as { [K in keyof typeof DEFAULT_ROOMS]: string };
 
 const L = LOCATIONS;
-const INTERIOR = [L.living, L.dining, L.kitchen, L.bath1, L.stairs, L.master, L.masterBath, L.bed2, L.bed3, L.bath2];
-const DRY_ROOMS = [L.living, L.dining, L.stairs, L.master, L.bed2, L.bed3];
-const BATHROOMS = [L.bath1, L.masterBath, L.bath2];
+const INTERIOR = [L.living, L.dining, L.kitchen, L.multi, L.bath3, L.stairs, L.hall2, L.bed1, L.bed2, L.bath1, L.bath2];
+const DRY_ROOMS = [L.living, L.dining, L.multi, L.stairs, L.hall2, L.bed1, L.bed2];
+const BATHROOMS = [L.bath3, L.bath1, L.bath2];
 const WET_AREAS = [...BATHROOMS, L.kitchen, L.back];
-const BEDROOMS = [L.master, L.bed2, L.bed3];
-const ELECTRIC_ROOMS = [L.frontParking, L.living, L.dining, L.kitchen, L.bath1, L.stairs, L.back, L.master, L.masterBath, L.bed2, L.bed3, L.bath2];
+const BEDROOMS = [L.multi, L.bed1, L.bed2];
+const ELECTRIC_ROOMS = [L.frontParking, L.living, L.dining, L.kitchen, L.multi, L.bath3, L.back, L.stairs, L.hall2, L.bed1, L.bed2, L.bath1, L.bath2];
 
 export interface TemplateItem {
   title: string;
@@ -122,8 +126,8 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
     name: "ฝ้าเพดาน",
     items: [
       { title: "ฝ้าเพดาน รอยต่อ รอยร้าว และการแอ่นตัว", method: "มองแนวฝ้าในแนวเฉียง ส่องไฟฉายตามรอยต่อแผ่น", criteria: "ระนาบเรียบ ไม่แอ่น ไม่มีรอยร้าวตามรอยต่อ", priority: "MEDIUM", locations: INTERIOR },
-      { title: "คราบน้ำหรือรอยรั่วบนฝ้า", method: "สังเกตรอยด่างสีเหลือง/น้ำตาล โดยเฉพาะใต้ห้องน้ำชั้น 2", criteria: "ไม่มีคราบน้ำหรือรอยชื้น", priority: "HIGH", locations: [L.living, L.dining, L.kitchen, L.bath1, ...BEDROOMS] },
-      { title: "ช่องเซอร์วิสฝ้า (Access panel)", method: "เปิด-ปิดช่องเซอร์วิสทุกจุด", criteria: "เปิดปิดได้ ฝาเข้าที่สนิท ไม่บิดงอ", priority: "LOW", locations: [L.bath1, L.masterBath, L.bath2, L.stairs] },
+      { title: "คราบน้ำหรือรอยรั่วบนฝ้า", method: "สังเกตรอยด่างสีเหลือง/น้ำตาล โดยเฉพาะใต้ห้องน้ำชั้น 2", criteria: "ไม่มีคราบน้ำหรือรอยชื้น", priority: "HIGH", locations: [L.living, L.dining, L.kitchen, L.bath3, ...BEDROOMS] },
+      { title: "ช่องเซอร์วิสฝ้า (Access panel)", method: "เปิด-ปิดช่องเซอร์วิสทุกจุด", criteria: "เปิดปิดได้ ฝาเข้าที่สนิท ไม่บิดงอ", priority: "LOW", locations: [L.bath3, L.bath1, L.bath2, L.stairs] },
     ],
   },
   {
@@ -131,11 +135,11 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
     scope: "GENERAL",
     name: "ประตูและหน้าต่าง",
     items: [
-      { title: "ประตู เปิด-ปิด ฝืด ครูด หรือปิดไม่สนิท", method: "เปิด-ปิดทุกบาน ดูช่องว่างรอบบาน ปล่อยบานค้างครึ่งทางดูว่าเหวี่ยงเองหรือไม่", criteria: "เปิดปิดลื่น ช่องว่างรอบบานสม่ำเสมอ บานไม่เหวี่ยงเอง", priority: "MEDIUM", locations: [L.frontParking, L.kitchen, L.bath1, L.back, L.master, L.masterBath, L.bed2, L.bed3, L.bath2] },
-      { title: "ลูกบิด กุญแจ บานพับ และกลอน", method: "ทดลองล็อก/ปลดล็อกทุกจุด ไขกุญแจทุกดอก", criteria: "ล็อกได้จริง ไม่หลวม ไม่มีเสียงดัง", priority: "MEDIUM", locations: [L.frontParking, L.kitchen, L.bath1, L.back, L.master, L.masterBath, L.bed2, L.bed3, L.bath2] },
-      { title: "หน้าต่าง/ประตูบานเลื่อน: ล็อก มุ้งลวด ยางกันน้ำ", method: "เลื่อน-ล็อกทุกบาน ตรวจมุ้งลวดขาด ยางขอบบาน", criteria: "เลื่อนลื่น ล็อกแน่น มุ้งลวดไม่ขาด ยางขอบเต็มแนว", priority: "MEDIUM", locations: [L.living, L.dining, L.kitchen, L.stairs, L.master, L.bed2, L.bed3] },
-      { title: "การรั่วซึมรอบวงกบหน้าต่าง (ฉีดน้ำทดสอบ)", method: "ฉีดน้ำจากภายนอกที่ขอบวงกบ 5-10 นาที ตรวจด้านในด้วยกระดาษทิชชู", criteria: "ไม่มีน้ำซึมเข้าด้านใน ซิลิโคนเต็มแนว", priority: "HIGH", locations: [L.living, L.dining, L.master, L.bed2, L.bed3] },
-      { title: "กระจก: รอยร้าว รอยขีดข่วน คราบ", method: "ตรวจด้วยสายตาทั้งสองด้านของกระจก", criteria: "ไม่ร้าว ไม่มีรอยขีดข่วนลึก", priority: "LOW", locations: [L.living, L.dining, L.kitchen, L.stairs, L.master, L.bed2, L.bed3] },
+      { title: "ประตู เปิด-ปิด ฝืด ครูด หรือปิดไม่สนิท", method: "เปิด-ปิดทุกบาน ดูช่องว่างรอบบาน ปล่อยบานค้างครึ่งทางดูว่าเหวี่ยงเองหรือไม่", criteria: "เปิดปิดลื่น ช่องว่างรอบบานสม่ำเสมอ บานไม่เหวี่ยงเอง", priority: "MEDIUM", locations: [L.frontParking, L.kitchen, L.bath3, L.back, L.bed1, L.bath1, L.bed2, L.multi, L.bath2] },
+      { title: "ลูกบิด กุญแจ บานพับ และกลอน", method: "ทดลองล็อก/ปลดล็อกทุกจุด ไขกุญแจทุกดอก", criteria: "ล็อกได้จริง ไม่หลวม ไม่มีเสียงดัง", priority: "MEDIUM", locations: [L.frontParking, L.kitchen, L.bath3, L.back, L.bed1, L.bath1, L.bed2, L.multi, L.bath2] },
+      { title: "หน้าต่าง/ประตูบานเลื่อน: ล็อก มุ้งลวด ยางกันน้ำ", method: "เลื่อน-ล็อกทุกบาน ตรวจมุ้งลวดขาด ยางขอบบาน", criteria: "เลื่อนลื่น ล็อกแน่น มุ้งลวดไม่ขาด ยางขอบเต็มแนว", priority: "MEDIUM", locations: [L.living, L.dining, L.kitchen, L.stairs, L.bed1, L.bed2, L.multi] },
+      { title: "การรั่วซึมรอบวงกบหน้าต่าง (ฉีดน้ำทดสอบ)", method: "ฉีดน้ำจากภายนอกที่ขอบวงกบ 5-10 นาที ตรวจด้านในด้วยกระดาษทิชชู", criteria: "ไม่มีน้ำซึมเข้าด้านใน ซิลิโคนเต็มแนว", priority: "HIGH", locations: [L.living, L.dining, L.bed1, L.bed2, L.multi] },
+      { title: "กระจก: รอยร้าว รอยขีดข่วน คราบ", method: "ตรวจด้วยสายตาทั้งสองด้านของกระจก", criteria: "ไม่ร้าว ไม่มีรอยขีดข่วนลึก", priority: "LOW", locations: [L.living, L.dining, L.kitchen, L.stairs, L.bed1, L.bed2, L.multi] },
     ],
   },
   {
@@ -161,7 +165,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
       { title: "สวิตช์และดวงโคม", method: "เปิด-ปิดทุกสวิตช์ ตรวจไฟติดตรงจุด หน้ากากแน่น", criteria: "ทุกดวงติด สวิตช์ไม่หลวม ไม่มีเสียงหรือกลิ่นไหม้", priority: "MEDIUM", locations: ELECTRIC_ROOMS },
       { scope: "ENGINEERING", title: "ตู้ไฟ (Consumer unit) และเบรกเกอร์กันดูด (RCBO/RCD)", method: "เปิดตู้ ตรวจป้ายวงจร กดปุ่ม TEST ของ RCBO/RCD ต้องตัดทันที", criteria: "มีป้ายชื่อวงจรครบ RCD ตัดเมื่อกด TEST สายเรียบร้อย ไม่มีรอยไหม้", priority: "CRITICAL", locations: [L.frontParking, L.living] },
       { title: "จุดติดตั้งเครื่องปรับอากาศและเบรกเกอร์แยก", method: "ตรวจจุดเตรียมท่อแอร์ เต้ารับ/เบรกเกอร์แยกสำหรับแอร์", criteria: "มีจุดเตรียมครบตามแบบ เบรกเกอร์แยกวงจร", priority: "MEDIUM", locations: BEDROOMS },
-      { title: "กริ่ง โทรศัพท์ อินเทอร์เน็ต และ TV outlet", method: "ทดสอบกริ่ง ตรวจจุด LAN/TV ตามแบบ", criteria: "ครบตามแบบ ใช้งานได้", priority: "LOW", locations: [L.frontParking, L.living, L.master] },
+      { title: "กริ่ง โทรศัพท์ อินเทอร์เน็ต และ TV outlet", method: "ทดสอบกริ่ง ตรวจจุด LAN/TV ตามแบบ", criteria: "ครบตามแบบ ใช้งานได้", priority: "LOW", locations: [L.frontParking, L.living, L.bed1] },
       { title: "พัดลมระบายอากาศห้องน้ำ", method: "เปิดใช้งาน ทดสอบแรงดูดด้วยกระดาษทิชชู", criteria: "ทำงาน ไม่มีเสียงดังผิดปกติ ดูดอากาศได้จริง", priority: "LOW", locations: BATHROOMS },
     ],
   },
@@ -170,7 +174,7 @@ export const CHECKLIST_TEMPLATE: TemplateCategory[] = [
     scope: "GENERAL",
     name: "ครัวและบิวท์อิน",
     items: [
-      { title: "เคาน์เตอร์และตู้บิวท์อิน: บานตู้ ลิ้นชัก มือจับ", method: "เปิดปิดทุกบานและลิ้นชัก ตรวจบานพับปรับระดับ", criteria: "บานตรงแนว เปิดปิดลื่น ไม่มีรอยแตก ผิวไม่บวมน้ำ", priority: "LOW", locations: [L.kitchen, L.master] },
+      { title: "เคาน์เตอร์และตู้บิวท์อิน: บานตู้ ลิ้นชัก มือจับ", method: "เปิดปิดทุกบานและลิ้นชัก ตรวจบานพับปรับระดับ", criteria: "บานตรงแนว เปิดปิดลื่น ไม่มีรอยแตก ผิวไม่บวมน้ำ", priority: "LOW", locations: [L.kitchen, L.bed1] },
       { title: "ท็อปเคาน์เตอร์และซิลิโคนรอบซิงค์", method: "ตรวจรอยแตก บิ่น และซิลิโคนรอบซิงค์/ผนัง", criteria: "ไม่แตกบิ่น ซิลิโคนเต็มแนว", priority: "LOW", locations: [L.kitchen] },
     ],
   },

@@ -261,6 +261,14 @@ export async function move(table: "checklist_items" | "checklist_categories" | "
 
 /* ───────────── Seed ───────────── */
 
+/** Creates the Siri Place Rama 2 · TH99B pilot project + house with the standard checklist, and selects it. */
+export async function createPilotHouse(ownerId: string | null) {
+  const project = await createProject({ ...DEFAULT_PROJECT, inspection_date: null, reinspection_date: null }, ownerId);
+  const property = await createProperty(project.id, { ...DEFAULT_PROPERTY }, { withTemplate: true });
+  await setMeta("currentPropertyId", property.id);
+  return { project, property };
+}
+
 /**
  * Seeds the default project/property once per owner. Seeding is skipped when the
  * owner already has any project (e.g. pulled from another device).
@@ -270,11 +278,7 @@ export async function seedDefaultData(ownerId: string | null): Promise<boolean> 
   const flag = `seeded:${ownerId ?? "local"}`;
   if (await getMeta<boolean>(flag)) return false;
   const hasProjects = (await db.projects.filter(alive).count()) > 0;
-  if (!hasProjects) {
-    const project = await createProject({ ...DEFAULT_PROJECT, inspection_date: null, reinspection_date: null }, ownerId);
-    const property = await createProperty(project.id, { ...DEFAULT_PROPERTY }, { withTemplate: true });
-    await setMeta("currentPropertyId", property.id);
-  }
+  if (!hasProjects) await createPilotHouse(ownerId);
   await setMeta(flag, true);
   return !hasProjects;
 }

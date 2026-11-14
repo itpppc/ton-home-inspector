@@ -12,8 +12,8 @@ import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
 import { usePhotoUrl } from "./photo-url";
 
-export function usePhotos(filter: { defectId?: string; itemId?: string; kinds?: PhotoKind[] }) {
-  const { defectId, itemId, kinds } = filter;
+export function usePhotos(filter: { defectId?: string; itemId?: string; propertyId?: string; kinds?: PhotoKind[] }) {
+  const { defectId, itemId, propertyId, kinds } = filter;
   const kindKey = kinds?.join(",") ?? "";
   return useLiveQuery(async () => {
     const db = getDB();
@@ -21,14 +21,16 @@ export function usePhotos(filter: { defectId?: string; itemId?: string; kinds?: 
       ? await db.photos.where("defect_id").equals(defectId).filter(alive).toArray()
       : itemId
         ? await db.photos.where("item_id").equals(itemId).filter((p) => alive(p) && !p.defect_id).toArray()
-        : [];
+        : propertyId
+          ? await db.photos.where("property_id").equals(propertyId).filter((p) => alive(p) && p.kind === "PROPERTY").toArray()
+          : [];
     const wanted = kindKey ? new Set(kindKey.split(",")) : null;
     const pending = new Set(await db.photo_blobs.where("uploaded").equals(0).primaryKeys());
     return rows
       .filter((p) => !wanted || wanted.has(p.kind))
       .sort((a, b) => a.taken_at.localeCompare(b.taken_at))
       .map((p) => ({ ...p, pendingUpload: pending.has(p.id) }));
-  }, [defectId, itemId, kindKey]);
+  }, [defectId, itemId, propertyId, kindKey]);
 }
 
 type GalleryPhoto = Photo & { pendingUpload: boolean };

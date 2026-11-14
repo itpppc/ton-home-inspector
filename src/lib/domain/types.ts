@@ -25,7 +25,8 @@ export const INSPECTION_SCOPES = ["GENERAL", "ENGINEERING"] as const;
 /** ENGINEERING items are screening only — a licensed engineer must confirm; the app never certifies safety. */
 export type InspectionScope = (typeof INSPECTION_SCOPES)[number];
 
-export const PHOTO_KINDS = ["DEFECT", "AFTER_FIX", "ITEM"] as const;
+/** PROPERTY = house-level photo (front of house, floor plan, documents; migration 0008). */
+export const PHOTO_KINDS = ["DEFECT", "AFTER_FIX", "ITEM", "PROPERTY"] as const;
 export type PhotoKind = (typeof PHOTO_KINDS)[number];
 
 /** Columns every synced row carries. */

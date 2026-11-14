@@ -16,7 +16,7 @@ export async function savePhoto(args: {
   caption?: string | null;
 }): Promise<Photo> {
   const { target } = args;
-  if (!target.defect_id && !target.item_id) throw new Error("ต้องระบุ Defect หรือรายการตรวจ");
+  if (args.kind !== "PROPERTY" && !target.defect_id && !target.item_id) throw new Error("ต้องระบุ Defect หรือรายการตรวจ");
   const db = getDB();
   const at = nowIso();
   const id = uid();

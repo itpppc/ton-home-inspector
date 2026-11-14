@@ -3,11 +3,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Building2, ChevronRight, FolderKanban, MapPin, Plus } from "lucide-react";
+import { Building2, ChevronRight, FolderKanban, MapPin, Plus, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getDB } from "@/lib/db/local";
 import { alive } from "@/lib/db/mutations";
-import { createProject } from "@/lib/db/repo";
+import { createPilotHouse, createProject } from "@/lib/db/repo";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAuth } from "@/providers/auth-provider";
 import { checklistStats } from "@/lib/domain/stats";
@@ -49,7 +49,18 @@ export default function ProjectsPage() {
       {ws.loading ? (
         <div className="h-32 animate-pulse rounded-xl bg-muted" />
       ) : ws.projects.length === 0 ? (
-        <EmptyState icon={FolderKanban} title="ยังไม่มีโครงการ" body="สร้างโครงการแรกเพื่อเริ่มเพิ่มบ้านและ Checklist" action={auth.canCreateProject && <Button onClick={startCreate}><Plus />สร้างโครงการ</Button>} />
+        <EmptyState icon={FolderKanban} title="ยังไม่มีโครงการ" body="สร้างโครงการแรกเพื่อเริ่มเพิ่มบ้านและ Checklist" action={auth.canCreateProject && (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button onClick={startCreate}><Plus />สร้างโครงการ</Button>
+            {auth.isSystemAdmin && (
+              <Button variant="accent" onClick={async () => {
+                const { property } = await createPilotHouse(auth.userId);
+                toast.success("สร้างบ้าน TH99B พร้อม Checklist แล้ว");
+                router.push(`/property?id=${property.id}`);
+              }}><Sparkles />เริ่มบ้าน Siri Place Rama 2 · TH99B</Button>
+            )}
+          </div>
+        )} />
       ) : (
         <div className="space-y-4">
           {ws.projects.map((pj) => {

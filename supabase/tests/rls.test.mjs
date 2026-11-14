@@ -237,6 +237,14 @@ ok("restoring the account restores access", !r.error && (await as(I, "select cou
 r = await as(A, "update public.projects set deleted_at = now() where id=$1", [P]);
 ok("admin can soft-delete project", r.count === 1, r.error);
 
+// ───────────── House photos (0008) ─────────────
+r = await as(A, "insert into public.photos (id, project_id, property_id, kind, storage_path) values ($1,$2,$3,'PROPERTY',$4)", [id(), P, H, `${P}/front.jpg`]);
+ok("house photo (front / floor plan) without defect or item", !r.error, r.error);
+r = await as(A, "insert into public.photos (id, project_id, property_id, kind) values ($1,$2,$3,'ITEM')", [id(), P, H]);
+ok("item photo still requires an item", !!r.error);
+r = await as(B, "insert into public.photos (id, project_id, property_id, kind) values ($1,$2,$3,'PROPERTY')", [id(), P, H]);
+ok("outsider cannot add house photos", !!r.error);
+
 // ───────────── Membership plans (0007) ─────────────
 const [F, F2, F3] = [id(), id(), id()];
 for (const [u, e] of [[F, "f@x.co"], [F2, "f2@x.co"], [F3, "f3@x.co"]])

@@ -13,6 +13,15 @@ beforeEach(() => {
 const expectedItems = CHECKLIST_TEMPLATE.reduce((s, c) => s + c.items.reduce((a, i) => a + (i.locations?.length || 1), 0), 0);
 
 describe("seed", () => {
+  it("default rooms follow the TH99B floor plan (3 baths, multi-purpose room, 2 bedrooms upstairs)", () => {
+    const labels = Object.values(DEFAULT_ROOMS).map((r) => (r.floor ? `${r.floor} - ${r.name}` : r.name));
+    for (const room of ["ชั้น 1 - ห้องอเนกประสงค์", "ชั้น 1 - ห้องน้ำ 3", "ชั้น 2 - ห้องนอน 1", "ชั้น 2 - ห้องนอน 2", "ชั้น 2 - ห้องน้ำ 1", "ชั้น 2 - ห้องน้ำ 2", "ชั้น 2 - โถงชั้น 2"])
+      expect(labels).toContain(room);
+    const used = new Set(CHECKLIST_TEMPLATE.flatMap((c) => c.items.flatMap((i) => i.locations ?? [])));
+    for (const l of labels) expect(used.has(l), `room "${l}" has checklist items`).toBe(true);
+    for (const l of used) expect(labels, `location "${l}" is a real room`).toContain(l);
+  });
+
   it("creates the default project/property with the full checklist exactly once", async () => {
     expect(await repo.seedDefaultData(null)).toBe(true);
     expect(await repo.seedDefaultData(null)).toBe(false);

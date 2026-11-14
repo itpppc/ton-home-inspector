@@ -86,6 +86,7 @@ export function ReportView({ data }: { data: ReportData }) {
   const { property, project } = data;
   const cs = checklistStats(data.items);
   const ds = defectStats(data.defects);
+  const housePhotos = data.photos.filter((p) => p.kind === "PROPERTY");
   const deadline = computeClaimDeadline({ transferDateActual: property.transfer_date_actual, transferDatePlanned: property.transfer_date_planned, windowDays: property.claim_window_days });
   const roomName = new Map(data.rooms.map((r) => [r.id, r.floor ? `${r.floor} - ${r.name}` : r.name]));
   const byCat = categoryProgress(data.categories, data.items);
@@ -110,6 +111,11 @@ export function ReportView({ data }: { data: ReportData }) {
           ].map(([k, v]) => <div key={k}><dt className="inline text-neutral-500">{k}: </dt><dd className="inline font-medium">{v}</dd></div>)}
           <div className="col-span-2"><dt className="inline text-neutral-500">วันสุดท้ายแจ้งเก็บงาน ({property.claim_window_days} วันนับจากวันโอนจริง): </dt><dd className="inline font-medium">{deadline.deadline ? formatDate(deadline.deadline) : "คำนวณเมื่อบันทึกวันโอนจริง"}</dd></div>
         </dl>
+        {housePhotos.length > 0 && (
+          <div className="mt-3 grid grid-cols-3 gap-2 break-inside-avoid" aria-label="รูปบ้าน / ผังบ้าน">
+            {housePhotos.slice(0, 6).map((p) => <ReportPhoto key={p.id} photo={p} />)}
+          </div>
+        )}
       </Section>
 
       <Section title="สรุปผลการตรวจ">
