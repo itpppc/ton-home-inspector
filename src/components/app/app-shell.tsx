@@ -1,5 +1,6 @@
 "use client";
 import * as React from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Ban, Bug, Building2, Crown, ShieldCheck, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
@@ -92,7 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Ban className="mx-auto size-10 text-danger" aria-hidden />
           <h1 className="text-lg font-bold">บัญชีนี้ถูกระงับการใช้งาน</h1>
           <p className="text-sm text-muted-foreground">กรุณาติดต่อผู้ดูแลระบบ ข้อมูลของคุณไม่ได้ถูกลบ และจะกลับมาใช้ได้เมื่อเปิดบัญชีอีกครั้ง</p>
-          <button type="button" onClick={() => void signOut()} className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-muted"><LogOut className="size-4" aria-hidden />ออกจากระบบ</button>
+          <button type="button" onClick={() => void signOut().then((ok) => { if (!ok) toast.error("ออกจากระบบไม่สำเร็จ ต้องต่ออินเทอร์เน็ตก่อน"); })} className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-muted"><LogOut className="size-4" aria-hidden />ออกจากระบบ</button>
         </div>
       </div>
     );
@@ -100,8 +101,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const navItems = isSystemAdmin ? [...NAV, ADMIN_NAV] : NAV;
   const onSignOut = async () => {
-    if (pending > 0 && !window.confirm(`ยังมี ${pending} รายการที่ยังไม่ได้ Sync ขึ้น Cloud ต้องการออกจากระบบหรือไม่? (ข้อมูลยังอยู่ในเครื่องนี้)`)) return;
-    await signOut();
+    if (pending > 0 && !window.confirm(`ยังมี ${pending} รายการที่ยังไม่ได้ Sync ขึ้น Cloud\nข้อมูลยังอยู่ในเครื่องนี้ และจะ Sync เมื่อคุณเข้าสู่ระบบด้วยบัญชีเดิม (ถ้าคนอื่นเข้าสู่ระบบในเครื่องนี้ก่อน ข้อมูลส่วนนี้จะหาย)\nต้องการออกจากระบบหรือไม่?`)) return;
+    if (!(await signOut())) toast.error("ออกจากระบบไม่สำเร็จ ต้องต่ออินเทอร์เน็ตก่อน");
   };
 
   return (

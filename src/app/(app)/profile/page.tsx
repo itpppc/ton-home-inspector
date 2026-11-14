@@ -68,7 +68,7 @@ export default function ProfilePage() {
                   <Button asChild variant="outline"><Link href="/reset-password"><KeyRound />เปลี่ยนรหัสผ่าน</Link></Button>
                   <Button variant="outline" className="text-danger" onClick={async () => {
                     if (sync.pending > 0 && !window.confirm(`ยังมี ${sync.pending} รายการที่ยังไม่ได้ Sync ต้องการออกจากระบบหรือไม่?`)) return;
-                    await auth.signOut();
+                    if (!(await auth.signOut())) toast.error("ออกจากระบบไม่สำเร็จ ต้องต่ออินเทอร์เน็ตก่อน");
                   }}><LogOut />ออกจากระบบ</Button>
                 </div>
               </>

@@ -26,7 +26,8 @@ interface AuthContextValue {
   /** Account suspended by a system admin: all project data is blocked server-side. */
   suspended: boolean;
   refreshProfile: () => Promise<void>;
-  signOut: () => Promise<void>;
+  /** Signs out this device only. Returns false when offline (session kept, nothing lost). */
+  signOut: () => Promise<boolean>;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -185,7 +186,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (userId) await loadProfile(userId);
       },
       signOut: async () => {
-        await getSupabase()?.auth.signOut();
+        const sb = getSupabase();
+        if (!sb) return true;
+        // scope "local": logging out the office PC must not kick the phone out mid-inspection.
+        const { error } = await sb.auth.signOut({ scope: "local" });
+        return !error;
       },
     };
   }, [mode, status, userId, session, profile, memberships, loadProfile]);
