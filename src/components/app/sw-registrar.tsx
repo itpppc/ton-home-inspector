@@ -1,8 +1,10 @@
 "use client";
 import { useEffect } from "react";
+import { startInstallCapture } from "@/features/pwa/install-state";
 
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
+    startInstallCapture();
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
     const register = () => {
       navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => undefined);

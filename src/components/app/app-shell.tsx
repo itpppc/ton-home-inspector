@@ -11,6 +11,7 @@ import { ROLE_META } from "@/lib/domain/labels";
 import { cn } from "@/lib/utils";
 import { BrandLockup, BrandMark } from "./brand";
 import { SyncIndicator } from "./sync-indicator";
+import { InstallBanner } from "@/features/pwa/install-ui";
 
 /** `mobile: false` items are desktop-sidebar only (mobile bottom nav holds 5; profile lives in the header). */
 const NAV = [
@@ -116,7 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Header */}
-      <header className="print:hidden sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+      <header className="print:hidden pt-safe sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
         <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
           <div className="lg:hidden"><BrandMark className="size-8" /></div>
           <PropertySwitcher />
@@ -128,7 +129,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0">{children}</main>
+      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0"><InstallBanner />{children}</main>
 
       {/* Mobile bottom nav */}
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden print:hidden" aria-label="เมนูหลัก">

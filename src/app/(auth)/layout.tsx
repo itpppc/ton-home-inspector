@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <p className="text-xs text-sidebar-foreground/70">© TON AI · INSIGHT • AUTOMATE • GROW</p>
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-96 rounded-full bg-gradient-to-br from-secondary/40 to-accent/40 blur-3xl" />
       </div>
-      <main className="flex items-center justify-center p-5">
+      <main className="flex items-center justify-center p-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden"><BrandLockup /></div>
           {children}

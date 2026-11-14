@@ -18,6 +18,7 @@ import { Input, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/app/app-shell";
+import { InstallButton } from "@/features/pwa/install-ui";
 import { formatDateTime } from "@/lib/utils";
 
 type V = z.infer<typeof profileSchema>;
@@ -84,6 +85,13 @@ export default function ProfilePage() {
               {sync.lastError && <p className="rounded-lg bg-danger/10 p-2 text-danger">{sync.lastError}</p>}
               {auth.mode === "cloud" && <Button variant="outline" onClick={() => void sync.syncNow()}><RefreshCw />Sync ตอนนี้</Button>}
             </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>ติดตั้งแอป</CardTitle>
+              <CardDescription>ใช้ได้ทั้ง iPhone, iPad, Android และคอมพิวเตอร์ เปิดเต็มจอและทำงานแบบออฟไลน์</CardDescription>
+            </CardHeader>
+            <CardContent><InstallButton className="w-full sm:w-auto" /></CardContent>
           </Card>
           <Card>
             <CardHeader><CardTitle>การแสดงผล</CardTitle></CardHeader>

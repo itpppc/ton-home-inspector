@@ -3,12 +3,14 @@ import { Toaster } from "sonner";
 import { ThemeProvider, themeInitScript } from "@/providers/theme-provider";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ServiceWorkerRegistrar } from "@/components/app/sw-registrar";
+import { earlyInstallCaptureScript } from "@/features/pwa/install-state";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: { default: "TON Home Inspector", template: "%s · TON Home Inspector" },
   description: "ระบบตรวจรับบ้านและติดตามงานแก้ไข — INSIGHT • AUTOMATE • GROW",
   applicationName: "TON Home Inspector",
+  formatDetection: { telephone: false },
   appleWebApp: { capable: true, title: "TON Inspector", statusBarStyle: "black-translucent" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
@@ -25,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: earlyInstallCaptureScript }} />
       </head>
       <body className="min-h-dvh antialiased">
         <ThemeProvider>

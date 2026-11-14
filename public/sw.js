@@ -1,5 +1,5 @@
 /* TON Home Inspector service worker — app-shell precache + runtime caching. */
-const VERSION = "v3";
+const VERSION = "v4";
 const SHELL = `ton-shell-${VERSION}`;
 const STATIC = `ton-static-${VERSION}`;
 const ROUTES = ["/", "/projects", "/project", "/property", "/inspect", "/checklist", "/rooms", "/defects", "/defect", "/reports", "/profile", "/login", "/register", "/forgot-password", "/reset-password"];
@@ -7,7 +7,7 @@ const ASSET_RE = /\/_next\/static\/[^"'\s)]+/g;
 
 async function precache() {
   const shell = await caches.open(SHELL);
-  const assets = new Set(["/manifest.webmanifest", "/icons/icon-192.png", "/fonts/Sarabun-Regular.ttf", "/fonts/Sarabun-Medium.ttf", "/fonts/Sarabun-SemiBold.ttf", "/fonts/Sarabun-Bold.ttf"]);
+  const assets = new Set(["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png", "/fonts/Sarabun-Regular.ttf", "/fonts/Sarabun-Medium.ttf", "/fonts/Sarabun-SemiBold.ttf", "/fonts/Sarabun-Bold.ttf"]);
   await Promise.all(
     ROUTES.map(async (route) => {
       try {

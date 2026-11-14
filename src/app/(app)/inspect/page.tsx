@@ -59,7 +59,7 @@ export default function InspectPage() {
       <DeadlineBanner property={ws.property} className="mb-3" />
       {readOnly && <p className="mb-3 rounded-lg bg-muted p-3 text-sm">คุณมีสิทธิ์ดูอย่างเดียว (Viewer)</p>}
 
-      <div className="sticky top-14 z-10 -mx-3 mb-3 space-y-2 border-b bg-background/95 px-3 py-3 backdrop-blur sm:-mx-5 sm:px-5">
+      <div className="sticky top-[calc(3.5rem+env(safe-area-inset-top))] z-10 -mx-3 mb-3 space-y-2 border-b bg-background/95 px-3 py-3 backdrop-blur sm:-mx-5 sm:px-5">
         <div className="flex items-center gap-3">
           <Progress value={stats.progressPct} label="ความคืบหน้าการตรวจ" className="flex-1" />
           <span className="text-sm font-bold tabular-nums">{stats.progressPct}%</span>
