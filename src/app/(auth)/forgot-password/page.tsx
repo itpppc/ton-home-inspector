@@ -25,7 +25,7 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (v: V) => {
     setError(null);
-    const { error: e } = await getSupabase()!.auth.resetPasswordForEmail(v.email, { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` });
+    const { error: e } = await getSupabase()!.auth.resetPasswordForEmail(v.email.trim().toLowerCase(), { redirectTo: `${window.location.origin}/auth/callback?next=/reset-password` });
     // Same response whether or not the account exists (no user enumeration), except transport errors.
     if (e && /fetch|network|rate/i.test(e.message)) return setError(authErrorMessage(e.message));
     setDone(true);

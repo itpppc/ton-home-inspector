@@ -18,19 +18,19 @@ export const PRIORITY_META: Record<Priority, { label: string; tone: Tone }> = {
 };
 
 export const SEVERITY_META: Record<Severity, { label: string; hint: string; tone: Tone; color: string }> = {
-  LOW: { label: "เล็กน้อย", hint: "งานเก็บความสวยงาม ไม่กระทบการใช้งาน", tone: "neutral", color: "#64748b" },
-  MEDIUM: { label: "ปานกลาง", hint: "กระทบการใช้งานบางส่วน ควรแก้ก่อนเข้าอยู่", tone: "info", color: "#0891b2" },
-  HIGH: { label: "สูง", hint: "กระทบการใช้งานหลัก/รั่วซึม ต้องแก้ก่อนโอน", tone: "warning", color: "#d97706" },
-  CRITICAL: { label: "วิกฤต", hint: "ความปลอดภัย/โครงสร้าง/ไฟฟ้า ห้ามรับโอนจนกว่าจะแก้", tone: "danger", color: "#dc2626" },
+  LOW: { label: "เล็กน้อย", hint: "งานเก็บความสวยงาม ไม่กระทบการใช้งาน", tone: "neutral", color: "#8a8172" },
+  MEDIUM: { label: "ปานกลาง", hint: "กระทบการใช้งานบางส่วน ควรแก้ก่อนเข้าอยู่", tone: "info", color: "#1f4e8c" },
+  HIGH: { label: "สูง", hint: "กระทบการใช้งานหลัก/รั่วซึม ต้องแก้ก่อนโอน", tone: "warning", color: "#b7791f" },
+  CRITICAL: { label: "วิกฤต", hint: "ความปลอดภัย/โครงสร้าง/ไฟฟ้า ห้ามรับโอนจนกว่าจะแก้", tone: "danger", color: "#c62828" },
 };
 
 export const DEFECT_STATUS_META: Record<DefectStatus, { label: string; tone: Tone; color: string }> = {
-  OPEN: { label: "พบปัญหา", tone: "danger", color: "#dc2626" },
-  SUBMITTED: { label: "แจ้งโครงการแล้ว", tone: "accent", color: "#7c3aed" },
-  IN_PROGRESS: { label: "กำลังแก้ไข", tone: "warning", color: "#d97706" },
-  FIXED: { label: "แก้แล้ว รอตรวจซ้ำ", tone: "info", color: "#0891b2" },
-  VERIFIED: { label: "ตรวจซ้ำผ่าน (ปิดงาน)", tone: "success", color: "#16a34a" },
-  REOPENED: { label: "ตรวจซ้ำไม่ผ่าน", tone: "danger", color: "#be123c" },
+  OPEN: { label: "พบปัญหา", tone: "danger", color: "#c62828" },
+  SUBMITTED: { label: "แจ้งโครงการแล้ว", tone: "accent", color: "#e8590c" },
+  IN_PROGRESS: { label: "กำลังแก้ไข", tone: "warning", color: "#b7791f" },
+  FIXED: { label: "แก้แล้ว รอตรวจซ้ำ", tone: "info", color: "#1f4e8c" },
+  VERIFIED: { label: "ตรวจซ้ำผ่าน (ปิดงาน)", tone: "success", color: "#2e7d32" },
+  REOPENED: { label: "ตรวจซ้ำไม่ผ่าน", tone: "danger", color: "#8e1b1b" },
 };
 
 /** Allowed workflow transitions; keeps the defect lifecycle auditable. */
@@ -81,7 +81,7 @@ export const TONE_CLASS: Record<Tone, string> = {
   danger: "bg-danger/12 text-danger border-danger/30",
   warning: "bg-warning/15 text-warning-strong border-warning/40",
   info: "bg-secondary/12 text-secondary-strong border-secondary/30",
-  accent: "bg-accent/12 text-accent border-accent/30",
+  accent: "bg-signal/12 text-accent border-signal/35",
   primary: "bg-primary/10 text-primary border-primary/25",
 };
 export type { Tone };

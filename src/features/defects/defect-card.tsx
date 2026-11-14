@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/utils";
 export function DefectCard({ defect, photos }: { defect: Defect; photos: number }) {
   return (
     <Link href={`/defect?id=${defect.id}`} data-testid="defect-card"
-      className="relative block overflow-hidden rounded-xl border bg-card p-3 pl-4 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring">
+      className="relative block overflow-hidden rounded-md border bg-card p-3 pl-4 transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:outline-ring">
       <span className="absolute inset-y-0 left-0 w-1" style={{ background: SEVERITY_META[defect.severity].color }} aria-hidden />
       <div className="mb-1 flex flex-wrap items-center gap-1.5">
         <span className="font-mono text-[11px] text-muted-foreground">{defect.code}</span>

@@ -40,7 +40,7 @@ export default function DefectsPage() {
   const [creating, setCreating] = React.useState(false);
   const q = React.useDeferredValue(query.trim().toLowerCase());
 
-  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (ws.loading || !data) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   const property = ws.property;
   if (!property) return <EmptyState icon={Bug} title="ยังไม่ได้เลือกบ้าน" action={<Button asChild><Link href="/projects">ไปที่โครงการ</Link></Button>} />;
   const canEdit = auth.canEdit(property.project_id, ws.project?.owner_id);

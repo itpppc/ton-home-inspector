@@ -47,7 +47,7 @@ export default function ProjectsPage() {
         actions={auth.canCreateProject && <Button onClick={startCreate}><Plus />สร้างโครงการ</Button>}
       />
       {ws.loading ? (
-        <div className="h-32 animate-pulse rounded-xl bg-muted" />
+        <div className="h-32 animate-pulse rounded-md bg-muted" />
       ) : ws.projects.length === 0 ? (
         <EmptyState icon={FolderKanban} title="ยังไม่มีโครงการ" body="สร้างโครงการแรกเพื่อเริ่มเพิ่มบ้านและ Checklist" action={auth.canCreateProject && (
           <div className="flex flex-col gap-2 sm:flex-row">

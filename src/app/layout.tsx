@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#0b1f4b" }, { media: "(prefers-color-scheme: dark)", color: "#071330" }],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#f3efe6" }, { media: "(prefers-color-scheme: dark)", color: "#141310" }],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -28,11 +28,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: earlyInstallCaptureScript }} />
+        {/* Body + heading weights of the Thai UI face: fetched in parallel with CSS, no text reflow */}
+        <link rel="preload" href="/fonts/plex-thai-th-400.woff2" as="font" type="font/woff2" crossOrigin="" />
+        <link rel="preload" href="/fonts/plex-thai-th-600.woff2" as="font" type="font/woff2" crossOrigin="" />
       </head>
       <body className="min-h-dvh antialiased">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
-          <Toaster richColors position="top-center" closeButton />
+          <Toaster richColors position="top-center" closeButton toastOptions={{ style: { fontFamily: "var(--font-sans)", borderRadius: "6px" } }} />
         </ThemeProvider>
         <ServiceWorkerRegistrar />
       </body>

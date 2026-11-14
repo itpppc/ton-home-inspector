@@ -42,7 +42,7 @@ function ProjectDetail() {
     return { project, properties };
   }, [id]);
 
-  if (data === undefined) return <div className="h-40 animate-pulse rounded-xl bg-muted" />;
+  if (data === undefined) return <div className="h-40 animate-pulse rounded-md bg-muted" />;
   if (data === null) return <EmptyState icon={FolderX} title="ไม่พบโครงการ" action={<Button asChild variant="outline"><Link href="/projects">กลับ</Link></Button>} />;
   const { project, properties } = data;
   const canEdit = auth.canEdit(project.id, project.owner_id);

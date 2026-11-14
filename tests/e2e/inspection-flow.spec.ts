@@ -4,10 +4,10 @@ import { expect, test } from "@playwright/test";
 test.describe("Phase 1 — local mode", () => {
   test("seeds default data and shows dashboard", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "ภาพรวมงานตรวจ" })).toBeVisible();
     await expect(page.locator("main").getByText(/Siri Place Rama 2 · แปลง 1240-032002 · TH99B/)).toBeVisible();
     await expect(page.getByText("ยังไม่ได้บันทึกวันโอนกรรมสิทธิ์จริง").first()).toBeVisible();
-    await expect(page.getByText(/ตรวจแล้ว 0 จาก \d+ รายการ/)).toBeVisible();
+    await expect(page.getByTestId("checked-summary")).toHaveText(/ตรวจแล้ว 0 \/ \d+ ข้อ/);
   });
 
   test("inspect: PASS/FAIL updates progress and persists after reload", async ({ page }) => {
@@ -23,7 +23,7 @@ test.describe("Phase 1 — local mode", () => {
     await expect(page.locator("article").first().getByRole("button", { name: "ผ่าน", exact: true })).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("article").nth(1).getByRole("textbox")).toHaveValue("รอยร้าวที่มุมวงกบ");
     await page.goto("/");
-    await expect(page.getByText(/ตรวจแล้ว 2 จาก \d+ รายการ/)).toBeVisible();
+    await expect(page.getByTestId("checked-summary")).toHaveText(/ตรวจแล้ว 2 \/ \d+ ข้อ/);
   });
 
   test("property: actual transfer date drives the 15-day deadline", async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe("Phase 1 — local mode", () => {
     await page.goto("/checklist");
     await page.getByLabel("ชื่อหมวดใหม่").fill("งานทดสอบ E2E");
     await page.getByRole("button", { name: "เพิ่มหมวด" }).click();
-    const card = page.locator("div.rounded-xl", { has: page.getByRole("heading", { name: /งานทดสอบ E2E/ }) });
+    const card = page.locator("[data-slot=card]", { has: page.getByRole("heading", { name: /งานทดสอบ E2E/ }) });
     await card.getByRole("button", { name: "หัวข้อ" }).click();
     const dialog = page.getByRole("dialog");
     await dialog.getByLabel("หัวข้อที่ตรวจ").fill("ทดสอบระบบกริ่งไร้สาย");

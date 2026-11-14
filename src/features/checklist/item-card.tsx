@@ -34,11 +34,20 @@ function ItemPhotos({ item, readOnly }: { item: ChecklistItem; readOnly: boolean
 }
 
 const OPTIONS: { status: ItemStatus; label: string; icon: React.ComponentType<{ className?: string }>; on: string }[] = [
-  { status: "PASS", label: "ผ่าน", icon: Check, on: "bg-success text-white border-success" },
-  { status: "FAIL", label: "ไม่ผ่าน", icon: X, on: "bg-danger text-white border-danger" },
-  { status: "NEEDS_REINSPECTION", label: "ตรวจซ้ำ", icon: Repeat, on: "bg-warning text-white border-warning" },
-  { status: "NOT_APPLICABLE", label: "N/A", icon: Ban, on: "bg-secondary-strong text-white border-secondary-strong" },
+  { status: "PASS", label: "ผ่าน", icon: Check, on: "bg-success text-white" },
+  { status: "FAIL", label: "ไม่ผ่าน", icon: X, on: "bg-danger text-white" },
+  { status: "NEEDS_REINSPECTION", label: "ตรวจซ้ำ", icon: Repeat, on: "bg-warning-strong text-white dark:text-black" },
+  { status: "NOT_APPLICABLE", label: "N/A", icon: Ban, on: "bg-secondary text-secondary-foreground" },
 ];
+
+/** Rubber-stamp colour per result (text colour drives the double border). */
+const STAMP: Record<ItemStatus, string> = {
+  NOT_CHECKED: "",
+  PASS: "text-success",
+  FAIL: "text-danger",
+  NEEDS_REINSPECTION: "text-warning-strong",
+  NOT_APPLICABLE: "text-secondary",
+};
 
 const RAIL: Record<ItemStatus, string> = {
   NOT_CHECKED: "before:bg-border",
@@ -58,25 +67,27 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly, s
   const showDetails = open || item.status === "FAIL" || item.status === "NEEDS_REINSPECTION";
 
   return (
-    <article className={cn("relative overflow-hidden rounded-xl border bg-card p-3 pl-4 shadow-sm before:absolute before:inset-y-0 before:left-0 before:w-1", RAIL[item.status])} aria-label={`${item.code} ${item.title}`}>
+    <article className={cn("relative overflow-hidden rounded-md border bg-card p-3 pl-4 before:absolute before:inset-y-0 before:left-0 before:w-1", RAIL[item.status], item.status === "NOT_CHECKED" && "border-dashed")} aria-label={`${item.code} ${item.title}`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-1.5">
-            <span className="font-mono text-[11px] text-muted-foreground">{item.code}</span>
+            <span className="font-mono text-[11px] font-semibold tracking-wide text-muted-foreground">{item.code}</span>
             {item.priority !== "LOW" && item.priority !== "MEDIUM" && <Badge tone={PRIORITY_META[item.priority].tone}>{PRIORITY_META[item.priority].label}</Badge>}
             {item.scope === "ENGINEERING" && <Badge tone={SCOPE_META.ENGINEERING.tone}><HardHat className="size-3" aria-hidden />{SCOPE_META.ENGINEERING.short}</Badge>}
-            {item.status !== "NOT_CHECKED" && <Badge tone={ITEM_STATUS_META[item.status].tone}>{ITEM_STATUS_META[item.status].label}</Badge>}
           </div>
           <h3 className="font-medium leading-snug">{item.title}</h3>
           {item.location && <p className="text-xs text-muted-foreground">{item.location}</p>}
         </div>
-        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={detailsId} className="grid size-10 shrink-0 place-items-center rounded-lg hover:bg-muted" aria-label="วิธีตรวจและเกณฑ์">
+        {item.status !== "NOT_CHECKED" && (
+          <span className={cn("stamp mt-1 shrink-0 -rotate-3 bg-card", STAMP[item.status])}>{ITEM_STATUS_META[item.status].label}</span>
+        )}
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-controls={detailsId} className="grid size-10 shrink-0 place-items-center rounded-md hover:bg-muted" aria-label="วิธีตรวจและเกณฑ์">
           <ChevronDown className={cn("size-5 transition-transform", open && "rotate-180")} />
         </button>
       </div>
 
       {open && (
-        <dl id={detailsId} className="mt-2 space-y-1.5 rounded-lg bg-muted/60 p-3 text-sm">
+        <dl id={detailsId} className="mt-2 space-y-1.5 border-l-2 border-foreground/70 bg-muted/50 p-3 text-sm">
           {item.description && <div><dt className="font-semibold">รายละเอียด</dt><dd>{item.description}</dd></div>}
           {item.method && <div><dt className="font-semibold">วิธีตรวจ</dt><dd>{item.method}</dd></div>}
           {item.acceptance_criteria && <div><dt className="font-semibold">เกณฑ์ผ่าน</dt><dd>{item.acceptance_criteria}</dd></div>}
@@ -84,7 +95,7 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly, s
         </dl>
       )}
 
-      <div role="group" aria-label="ผลการตรวจ" className="mt-3 grid grid-cols-4 gap-1.5">
+      <div role="group" aria-label="ผลการตรวจ" className="mt-3 grid grid-cols-4 divide-x divide-input overflow-hidden rounded-md border border-input">
         {OPTIONS.map(({ status, label, icon: Icon, on }) => {
           const active = item.status === status;
           return (
@@ -97,7 +108,7 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly, s
                 }
                 void setItemStatus(item.id, nextStatus, userId);
               }}
-              className={cn("flex min-h-11 flex-col items-center justify-center rounded-lg border text-xs font-semibold transition-colors disabled:opacity-50 sm:flex-row sm:gap-1.5 sm:text-sm", active ? on : "bg-card hover:bg-muted")}>
+              className={cn("flex min-h-12 flex-col items-center justify-center text-xs font-semibold transition-colors disabled:opacity-50 sm:min-h-11 sm:flex-row sm:gap-1.5 sm:text-sm", active ? on : "bg-card hover:bg-muted")}>
               <Icon className="size-4" aria-hidden />{label}
             </button>
           );
@@ -113,7 +124,7 @@ export const ItemCard = React.memo(function ItemCard({ item, userId, readOnly, s
         </div>
       )}
       {shared && (item.status === "FAIL" || defects.length > 0) && (
-        <div className="mt-2 space-y-1.5 rounded-lg bg-danger/5 p-2.5" data-testid="item-defects">
+        <div className="mt-2 space-y-1.5 border-l-2 border-danger bg-danger/5 p-2.5" data-testid="item-defects">
           {defects.map((d) => (
             <Link key={d.id} href={`/defect?id=${d.id}`} className="flex flex-wrap items-center gap-1.5 text-sm hover:underline">
               <Bug className="size-4 text-danger" aria-hidden /><span className="font-mono text-xs">{d.code}</span>

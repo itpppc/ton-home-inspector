@@ -88,7 +88,7 @@ export default function AdminPage() {
         actions={<Button variant="outline" onClick={() => void load()} disabled={!rows && !error}><RefreshCw className="size-4" />รีเฟรช</Button>}
       />
       {error && <p role="alert" className="mb-4 rounded-lg bg-danger/10 p-3 text-sm text-danger">{error}</p>}
-      {!rows && !error && <div className="h-40 animate-pulse rounded-xl bg-muted" aria-busy />}
+      {!rows && !error && <div className="h-40 animate-pulse rounded-md bg-muted" aria-busy />}
 
       {stats && (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">

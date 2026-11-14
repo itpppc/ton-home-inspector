@@ -83,7 +83,7 @@ test.describe("Phase 2 — found a problem → closed", () => {
     await page.getByRole("tab", { name: /ต้องแก้ไข \(0\)/ }).click();
     await expect(page.getByTestId("defect-card")).toHaveCount(0);
     await page.goto("/");
-    await expect(page.locator("p", { hasText: "Resolved Defects" }).locator("xpath=following-sibling::p[1]")).toHaveText("1");
+    await expect(page.getByTestId("stat-resolved").locator("[data-value]")).toHaveText("1");
   });
 
   test("photos taken offline are kept on the device and marked pending upload", async ({ page, context }) => {

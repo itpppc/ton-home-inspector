@@ -34,14 +34,14 @@ export function DeadlineBanner({ property, className }: { property: Property; cl
   const copy = deadlineCopy(info, property.claim_window_days);
   const Icon = info.state === "NO_ACTUAL_DATE" ? CircleAlert : info.state === "URGENT" || info.state === "LAST_DAY" ? ShieldAlert : info.state === "EXPIRED" ? Clock : CalendarClock;
   return (
-    <div role={info.state === "URGENT" || info.state === "LAST_DAY" ? "alert" : "status"} className={cn("flex items-start gap-3 rounded-xl border p-3 sm:p-4", TONES[copy.tone], className)}>
+    <div role={info.state === "URGENT" || info.state === "LAST_DAY" ? "alert" : "status"} className={cn("flex items-start gap-3 rounded-md border p-3 sm:p-4", TONES[copy.tone], className)}>
       <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
         <p className="font-semibold">{copy.title}</p>
         <p className="text-sm opacity-90">{copy.body}</p>
       </div>
       {info.state === "NO_ACTUAL_DATE" && (
-        <Link href={`/property?id=${property.id}#transfer`} className="shrink-0 self-center rounded-lg bg-card px-3 py-2 text-xs font-semibold text-foreground shadow-sm hover:bg-muted">
+        <Link href={`/property?id=${property.id}#transfer`} className="shrink-0 self-center rounded-lg bg-card px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted">
           บันทึกวันโอน
         </Link>
       )}
