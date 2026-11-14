@@ -16,7 +16,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageHeader } from "@/components/app/app-shell";
 import { formatDate, formatDateTime } from "@/lib/utils";
 import { PlanBadge } from "@/features/plans/plan-ui";
-import { addMonthsISODate, DEFAULT_PLANS, endOfLocalDayISO, PLAN_TIERS, renewFrom, type PlanTier } from "@/features/plans/plans";
+import { addMonthsISODate, DEFAULT_PLANS, endOfLocalDayISO, periodMonths, PLAN_TIERS, renewFrom, type PlanTier } from "@/features/plans/plans";
 
 const ROLE_TONE = { ADMIN: "accent", INSPECTOR: "info", VIEWER: "neutral" } as const;
 
@@ -192,9 +192,10 @@ function PlanDialog({ row, onClose, onSave }: { row: AdminUserRow | null; onClos
   const [noExpiry, setNoExpiry] = React.useState(false);
   React.useEffect(() => {
     if (!row) return;
-    setTier(row.plan && row.plan !== "FREE" ? row.plan : "PRO");
+    const t = row.plan && row.plan !== "FREE" ? row.plan : "PRO";
+    setTier(t);
     setNoExpiry(!!row.plan && row.plan !== "FREE" && !row.plan_expires_at);
-    setUntil(addMonthsISODate(renewFrom(row.plan_expires_at), 1));
+    setUntil(addMonthsISODate(renewFrom(row.plan_expires_at), periodMonths(DEFAULT_PLANS.find((x) => x.tier === t)!.billing_period)));
   }, [row]);
   if (!row) return null;
   const base = renewFrom(row.plan_expires_at);
@@ -219,7 +220,7 @@ function PlanDialog({ row, onClose, onSave }: { row: AdminUserRow | null; onClos
                 const p = DEFAULT_PLANS.find((x) => x.tier === t)!;
                 return (
                   <label key={t} className={`cursor-pointer rounded-lg border p-3 text-center text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring`}>
-                    <input type="radio" name="tier" value={t} className="sr-only" checked={tier === t} onChange={() => setTier(t)} />
+                    <input type="radio" name="tier" value={t} className="sr-only" checked={tier === t} onChange={() => { setTier(t); if (t !== "FREE") setUntil(addMonthsISODate(renewFrom(row.plan_expires_at), periodMonths(p.billing_period))); }} />
                     <span className="block font-semibold">{p.name}</span>
                     <span className="block text-xs text-muted-foreground">{p.max_properties === null ? "ไม่จำกัด" : `${p.max_properties} หลัง`}</span>
                   </label>

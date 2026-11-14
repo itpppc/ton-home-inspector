@@ -9,7 +9,8 @@ create table public.plans (
   tier public.plan_tier primary key,
   name text not null,
   description text not null default '',
-  price_thb_month integer not null default 0 check (price_thb_month >= 0),
+  price_thb integer not null default 0 check (price_thb >= 0),
+  billing_period text not null default 'month' check (billing_period in ('month', 'year')),
   max_projects integer check (max_projects > 0),
   max_properties integer check (max_properties > 0),
   max_members integer check (max_members > 0),
@@ -17,12 +18,12 @@ create table public.plans (
   sort_order integer not null default 0
 );
 
-insert into public.plans (tier, name, description, price_thb_month, max_projects, max_properties, max_members, features, sort_order) values
-  ('FREE', 'Free', 'ผู้ซื้อบ้านที่ตรวจบ้านของตัวเอง 1 หลัง', 0, 1, 1, 2,
+insert into public.plans (tier, name, description, price_thb, billing_period, max_projects, max_properties, max_members, features, sort_order) values
+  ('FREE', 'Free', 'ผู้ซื้อบ้านที่ตรวจบ้านของตัวเอง 1 หลัง', 0, 'month', 1, 1, 2,
     array['ตรวจบ้าน 1 หลัง', 'Checklist มาตรฐาน 180+ รายการ', 'ถ่ายรูป / Defect / ตรวจซ้ำ', 'ใช้งานออฟไลน์', 'รายงาน PDF และ Excel', 'แชร์ให้ผู้ร่วมดู 1 คน'], 1),
-  ('PRO', 'Pro', 'นักลงทุน / ผู้ซื้อหลายหลัง / นายหน้า', 199, 5, 10, 5,
+  ('PRO', 'Pro', 'นักลงทุน / ผู้ซื้อหลายหลัง / นายหน้า', 99, 'month', 5, 10, 5,
     array['สูงสุด 5 โครงการ 10 หลัง', 'ทุกอย่างใน Free', 'ทีมร่วมโครงการได้ 5 คน', 'สำรองข้อมูลบน Cloud'], 2),
-  ('BUSINESS', 'Business', 'บริษัทรับตรวจบ้าน / ผู้รับเหมา / นิติบุคคล', 990, null, null, 50,
+  ('BUSINESS', 'Business', 'บริษัทรับตรวจบ้าน / ผู้รับเหมา / นิติบุคคล', 299, 'year', null, null, 50,
     array['โครงการและบ้านไม่จำกัด', 'ทีมผู้ตรวจได้ 50 คนต่อโครงการ', 'สิทธิ์ Admin / Inspector / Viewer', 'รายงานแบรนด์ TON AI สำหรับลูกค้า'], 3);
 
 alter table public.plans enable row level security;

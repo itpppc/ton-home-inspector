@@ -5,6 +5,9 @@ test("plans page lists Free / Pro / Business; local mode is unlimited and never 
   await expect(page.getByRole("heading", { name: "แพ็กเกจสมาชิก" })).toBeVisible();
   for (const name of ["Free", "Pro", "Business"]) await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
   await expect(page.getByText("ใช้งานได้ไม่จำกัด")).toBeVisible();
+  await expect(page.getByText("฿99")).toBeVisible();
+  await expect(page.getByText("฿299")).toBeVisible();
+  await expect(page.getByText("/ ปี")).toBeVisible();
   await expect(page.getByRole("link", { name: /ติดต่ออัปเกรด/ }).first()).toHaveAttribute("href", "https://ton-ai-tech.web.app/");
 
   // The seeded project already exists; a second one must still be allowed locally (no upgrade dialog).

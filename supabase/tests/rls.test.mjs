@@ -243,7 +243,7 @@ for (const [u, e] of [[F, "f@x.co"], [F2, "f2@x.co"], [F3, "f3@x.co"]])
   await db.query("insert into auth.users (id, email, raw_user_meta_data) values ($1, $2, $3)", [u, e, { full_name: e }]);
 r = await as(null, "select tier, max_properties from public.plans order by sort_order");
 ok("plans are readable by anyone (pricing page)", r.rows.length === 3 && r.rows[0].tier === "FREE");
-r = await as(F, "update public.plans set price_thb_month = 0 where tier = 'PRO'");
+r = await as(F, "update public.plans set price_thb = 0 where tier = 'PRO'");
 ok("users cannot edit plan prices", r.count === 0 || !!r.error);
 r = await as(F, "select public.my_plan() p");
 ok("new user starts on FREE with zero usage", r.rows[0]?.p.effective === "FREE" && r.rows[0].p.projects === 0 && r.rows[0].p.max_properties === 1, JSON.stringify(r.rows[0]));

@@ -48,7 +48,7 @@ describe("plans", () => {
     const sql = readFileSync("supabase/migrations/20261115000007_plans.sql", "utf8");
     for (const p of DEFAULT_PLANS) {
       const lim = (v: number | null) => (v === null ? "null" : String(v));
-      expect(sql).toContain(`('${p.tier}', '${p.name}', '${p.description}', ${p.price_thb_month}, ${lim(p.max_projects)}, ${lim(p.max_properties)}, ${lim(p.max_members)},`);
+      expect(sql).toContain(`('${p.tier}', '${p.name}', '${p.description}', ${p.price_thb}, '${p.billing_period}', ${lim(p.max_projects)}, ${lim(p.max_properties)}, ${lim(p.max_members)},`);
       for (const f of p.features) expect(sql).toContain(`'${f}'`);
     }
   });

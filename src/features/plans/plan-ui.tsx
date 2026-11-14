@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TON_AI } from "@/lib/brand/ton-ai";
 import { cn } from "@/lib/utils";
-import { formatLimit, formatPrice, QUOTA_LABEL, type PlanRow, type PlanTier, type Quota, type QuotaKind } from "./plans";
+import { formatLimit, formatPrice, PERIOD_LABEL, QUOTA_LABEL, type PlanRow, type PlanTier, type Quota, type QuotaKind } from "./plans";
 
 export const PLAN_TONE: Record<PlanTier, "neutral" | "primary" | "accent"> = { FREE: "neutral", PRO: "primary", BUSINESS: "accent" };
 
@@ -66,8 +66,8 @@ export function PlanCard({ plan, current }: { plan: PlanRow; current: boolean })
       </div>
       <p className="mt-1 min-h-10 text-sm text-muted-foreground">{plan.description}</p>
       <p className="mt-3">
-        <span className="text-3xl font-bold tabular-nums">{formatPrice(plan.price_thb_month)}</span>
-        {plan.price_thb_month > 0 && <span className="text-sm text-muted-foreground"> / เดือน</span>}
+        <span className="text-3xl font-bold tabular-nums">{formatPrice(plan.price_thb)}</span>
+        {plan.price_thb > 0 && <span className="text-sm text-muted-foreground"> / {PERIOD_LABEL[plan.billing_period]}</span>}
       </p>
       <dl className="mt-4 grid grid-cols-3 gap-2 rounded-lg bg-muted/60 p-2 text-center text-xs">
         {(["projects", "properties", "members"] as const).map((k) => (
@@ -82,7 +82,7 @@ export function PlanCard({ plan, current }: { plan: PlanRow; current: boolean })
           <li key={f} className="flex gap-2"><Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />{f}</li>
         ))}
       </ul>
-      {!current && plan.price_thb_month > 0 && (
+      {!current && plan.price_thb > 0 && (
         <Button asChild className="mt-5" variant={featured ? "default" : "outline"}>
           <a href={TON_AI.url} target="_blank" rel="noopener">ติดต่ออัปเกรด<ExternalLink /></a>
         </Button>
