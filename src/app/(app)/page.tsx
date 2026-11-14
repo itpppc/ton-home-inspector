@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
-import { AlertOctagon, Building2, CheckCircle2, ClipboardCheck, ClipboardList, FolderKanban, Hourglass, ShieldCheck, Wrench, XCircle } from "lucide-react";
+import { AlertOctagon, Building2, CheckCircle2, ClipboardCheck, ClipboardList, FileText, FolderKanban, Hourglass, ShieldCheck, Wrench, XCircle } from "lucide-react";
 import { getDB } from "@/lib/db/local";
 import { alive } from "@/lib/db/mutations";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -71,7 +71,8 @@ export default function DashboardPage() {
       <PageHeader
         title="Dashboard"
         description={scope === "property" && ws.property ? `${ws.project?.name ?? ""} · แปลง ${ws.property.plot_number ?? "-"} · ${ws.property.house_model ?? ""}` : "ทุกโครงการและทุกบ้าน"}
-        actions={
+        actions={<>
+          <Button asChild variant="outline"><Link href="/reports"><FileText />รายงาน / Excel / สำรองข้อมูล</Link></Button>
           <div role="group" aria-label="ขอบเขตข้อมูล" className="inline-flex rounded-lg bg-muted p-1">
             {(["property", "all"] as const).map((s) => (
               <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={cn("rounded-md px-3 py-1.5 text-sm font-medium", scope === s ? "bg-card shadow-sm" : "text-muted-foreground")}>
@@ -79,7 +80,7 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-        }
+        </>}
       />
 
       {ws.property && <DeadlineBanner property={ws.property} className="mb-4" />}

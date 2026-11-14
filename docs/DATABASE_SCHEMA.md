@@ -280,3 +280,7 @@ TypeScript types generate ด้วย `supabase gen types typescript` → `src/
 | Consistency trigger | A `room_id` must belong to the same property as the item/defect (and the room to the property's project). |
 
 Photos: row `storage_path = {project_id}/{photo_id}.jpg`. The client uploads the JPEG to the private `inspection-photos` bucket **before** upserting the row, so a synced row never points at a missing file.
+
+## Phase 3 addition (migration `0005_lww_guard.sql`)
+
+`BEFORE UPDATE` trigger `a_lww_guard` on projects, properties, rooms, checklist_categories, checklist_items, defects, photos: if `new.updated_at < old.updated_at` the row keeps its stored content (`new := old`). `set_server_updated_at` still fires afterwards, so the stale writer pulls the winning row on its next sync. Prevents a device that was offline for hours from overwriting a newer edit made elsewhere.

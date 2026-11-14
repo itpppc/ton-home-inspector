@@ -1,6 +1,6 @@
 # TON Home Inspector — Task Tracker
 
-> อัปเดต: 14 Nov 2026 (Phase 2 build) · Legend: ✅ เสร็จ · 🟡 กำลังทำ · ⬜ ยังไม่เริ่ม · ⏸ รออนุมัติ/ข้อมูล
+> อัปเดต: 14 Nov 2026 (Phase 3 build) · Legend: ✅ เสร็จ · 🟡 กำลังทำ · ⬜ ยังไม่เริ่ม · ⏸ รออนุมัติ/ข้อมูล
 > กติกา: ทำทีละขั้น รายงานผล แล้ว **รอ TON AI สั่งก่อนเริ่มขั้นถัดไปทุกครั้ง**
 
 ## Key Dates
@@ -39,10 +39,10 @@
 | P1-10 | **Photo capture**: กล้องมือถือ, บีบอัด, เก็บ IndexedDB, gallery | 2h | ✅ Phase 2 (+ อัปโหลด Storage ก่อน push แถวรูป) |
 | P1-11 | **Defect**: สร้างจาก FAIL, severity, ตำแหน่ง, workflow, history, Before/After | 3h | ✅ Phase 2 |
 | P1-12 | Dashboard: KPI 9 ตัว + Progress + กราฟ 4 แบบ | 2h | ✅ |
-| P1-13 | **PDF report** (jsPDF + Sarabun) + Print layout A4 | 3h | ⬜ |
-| P1-14 | **Excel export** (Summary / Checklist / Defects / History) | 1.5h | ⬜ |
+| P1-13 | **PDF report** + Print layout A4 | 3h | ✅ Phase 3 — หน้า /reports พิมพ์/บันทึกเป็น PDF (HTML shaping ภาษาไทยถูกต้อง; jsPDF ทำวรรณยุกต์ซ้อนหาย จึงไม่ใช้) |
+| P1-14 | **Excel export** (Summary / Checklist / Defects / History) | 1.5h | ✅ Phase 3 |
 | P1-15 | PWA: manifest, icons, Service Worker, offline test, storage persist | 2h | ✅ |
-| P1-16 | Backup / Restore JSON (กันข้อมูลหายก่อนมี cloud) | 1h | ⬜ |
+| P1-16 | Backup / Restore JSON (กันข้อมูลหายก่อนมี cloud) | 1h | ✅ Phase 3 (รวมรูป, restore ไม่ทับของใหม่) |
 | P1-17 | Verify: typecheck, lint, unit tests, build, ทดสอบ mobile viewport | 1.5h | ✅ |
 
 ## P2 — Cloud & Auth
@@ -102,3 +102,16 @@
 | P2-6 | Reinspection: FIXED → VERIFIED / REOPENED (ต้องมีเหตุผล), หัวข้อตรวจ sync สถานะอัตโนมัติ | ✅ |
 | P2-7 | Tests: unit 53 · E2E 22 (mobile+desktop) รวม workflow พบปัญหา→ปิดงาน และถ่ายรูปออฟไลน์ · RLS 59 | ✅ |
 | P2-8 | Apply migration 0004 บน Supabase (ยังรอการอนุมัติ/ยืนยัน) | ⏸ |
+
+---
+
+## Phase 3 — Reports, Offline & Sync (14 Nov 2026)
+| ID | Task | Status |
+|---|---|---|
+| P3-1 | PDF ภาษาไทย: /reports (A4, สรุป/Defect+รูปก่อน-หลัง+ประวัติ/ผลตรวจรายหัวข้อ/disclaimer/ช่องลงนาม) ตรวจ render จริงแล้ว | ✅ |
+| P3-2 | Excel export 4 ชีต (สรุป/Checklist/Defects/ประวัติ) | ✅ |
+| P3-3 | Backup/Restore JSON (รวมรูป, validate ก่อนเขียน, LWW) | ✅ |
+| P3-4 | PWA/IndexedDB/Photo queue: outbox + photo_blobs.uploaded, อัปโหลดรูปก่อน push แถว, retry เมื่อออนไลน์ | ✅ |
+| P3-5 | ช่องข้อมูลหายที่พบ: เครื่องออฟไลน์นานเขียนทับของใหม่ → migration 0005 `lww_guard` (stale write คงเนื้อหาเดิมแต่ขยับ server_updated_at) | ✅ โค้ด+RLS test · ⏸ apply บน Supabase |
+| P3-6 | Tests: unit 63 · sync round-trip 5 สถานการณ์ (ออฟไลน์→ออนไลน์, เน็ตสะดุด, แก้ระหว่าง push, 2 เครื่อง, conflict) · E2E 25 (รีโหลดออฟไลน์) · RLS 64 | ✅ |
+| P3-7 | Apply migration 0004 + 0005 บน Supabase และทดสอบ sync จริง | ⏸ รอยืนยัน / ต้องเปิด allowed domain *.supabase.co |

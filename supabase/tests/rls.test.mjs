@@ -172,6 +172,23 @@ ok("inspector soft-deletes photo", r.count === 1, r.error);
 r = await as(A, "delete from public.rooms where id=$1", [R2]);
 ok("admin hard-deletes room; items keep working (room_id set null)", !r.error, r.error);
 
+
+// ── Phase 3: server-side LWW guard ─────────────────────────────────────────────
+const IT2 = id();
+await as(A, "insert into public.checklist_items (id, project_id, property_id, category_id, title, code, status, note, updated_at) values ($1,$2,$3,$4,'LWW','LWW-001','PASS','newer', '2026-11-14T10:05:00Z')", [IT2, P, H, C]);
+const serverTs = async () => (await db.query("select server_updated_at::text s from public.checklist_items where id=$1", [IT2])).rows[0].s;
+const ts0 = await serverTs();
+r = await as(I, "update public.checklist_items set status='FAIL', note='stale offline edit', updated_at='2026-11-14T10:00:00Z' where id=$1", [IT2]);
+ok("stale write is accepted without error (client ack succeeds)", !r.error && r.count === 1, r.error);
+r = await as(A, "select status, note from public.checklist_items where id=$1", [IT2]);
+ok("stale write does NOT overwrite newer content", r.rows[0].status === "PASS" && r.rows[0].note === "newer", JSON.stringify(r.rows));
+ok("stale write still advances server_updated_at (all devices pull the winner)", (await serverTs()) > ts0);
+r = await as(I, "update public.checklist_items set status='NEEDS_REINSPECTION', updated_at='2026-11-14T10:10:00Z' where id=$1", [IT2]);
+r = await as(A, "select status, updated_at::text u from public.checklist_items where id=$1", [IT2]);
+ok("newer write wins", r.rows[0].status === "NEEDS_REINSPECTION" && r.rows[0].u.startsWith("2026-11-14 10:10"), JSON.stringify(r.rows));
+r = await as(I, "update public.checklist_items set status='NEEDS_REINSPECTION', updated_at='2026-11-14T10:10:00Z' where id=$1", [IT2]);
+ok("re-pushing the identical row (retry) is idempotent", !r.error);
+
 r = await as(A, "update public.projects set deleted_at = now() where id=$1", [P]);
 ok("admin can soft-delete project", r.count === 1, r.error);
 

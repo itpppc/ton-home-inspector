@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bug, Building2, ClipboardCheck, DoorOpen, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
+import { Bug, Building2, ClipboardCheck, DoorOpen, FileText, LayoutDashboard, ListChecks, LogOut, Moon, Sun, UserRound, LoaderCircle } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { selectProperty, useWorkspace } from "@/hooks/use-workspace";
@@ -19,6 +19,7 @@ const NAV = [
   { href: "/defects", label: "Defect", short: "Defect", icon: Bug, mobile: true },
   { href: "/checklist", label: "จัดการ Checklist", short: "Checklist", icon: ListChecks, mobile: true },
   { href: "/rooms", label: "ห้อง / ตำแหน่ง", short: "ห้อง", icon: DoorOpen, mobile: false },
+  { href: "/reports", label: "รายงาน & สำรองข้อมูล", short: "รายงาน", icon: FileText, mobile: false },
   { href: "/projects", label: "โครงการ & บ้าน", short: "โครงการ", icon: Building2, mobile: true },
   { href: "/profile", label: "บัญชีผู้ใช้", short: "บัญชี", icon: UserRound, mobile: false },
 ] as const;
@@ -86,11 +87,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-dvh lg:pl-64">
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:p-2">ข้ามไปเนื้อหาหลัก</a>
+    <div className="min-h-dvh lg:pl-64 print:pl-0">
+      <a href="#main" className="print:hidden sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:p-2">ข้ามไปเนื้อหาหลัก</a>
 
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex print:!hidden">
         <div className="border-b border-white/10 px-5 py-5"><BrandLockup inverted /></div>
         <nav className="flex-1 space-y-1 p-3" aria-label="เมนูหลัก">
           {NAV.map(({ href, label, icon: Icon }) => {
@@ -115,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
+      <header className="print:hidden sticky top-0 z-20 border-b bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/75">
         <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
           <div className="lg:hidden"><BrandMark className="size-8" /></div>
           <PropertySwitcher />
@@ -127,10 +128,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10">{children}</main>
+      <main id="main" className="mx-auto w-full max-w-7xl px-3 pb-28 pt-4 sm:px-5 lg:pb-10 print:max-w-none print:p-0">{children}</main>
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden" aria-label="เมนูหลัก">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card pb-safe lg:hidden print:hidden" aria-label="เมนูหลัก">
         <ul className="grid grid-cols-5">
           {NAV.filter((n) => n.mobile).map(({ href, short, icon: Icon }) => {
             const active = isActive(pathname, href);
