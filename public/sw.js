@@ -1,5 +1,5 @@
 /* TON Home Inspector service worker — app-shell precache + runtime caching. */
-const VERSION = "v7";
+const VERSION = "v8";
 const SHELL = `ton-shell-${VERSION}`;
 const STATIC = `ton-static-${VERSION}`;
 const ROUTES = ["/", "/admin", "/plans", "/projects", "/project", "/property", "/inspect", "/checklist", "/rooms", "/defects", "/defect", "/reports", "/profile", "/login", "/register", "/forgot-password", "/reset-password"];

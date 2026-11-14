@@ -57,6 +57,7 @@ export const PHOTO_KIND_META: Record<PhotoKind, { label: string }> = {
   AFTER_FIX: { label: "หลังแก้ไข" },
   ITEM: { label: "ภาพประกอบการตรวจ" },
   PROPERTY: { label: "รูปบ้าน / ผังบ้าน" },
+  PROJECT: { label: "รูปโครงการ" },
 };
 
 export const CONSTRUCTION_STATUS_META: Record<ConstructionStatus, string> = {

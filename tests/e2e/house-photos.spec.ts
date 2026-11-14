@@ -14,3 +14,14 @@ test("house page: attach front photo + floor plans from the gallery; they appear
   await page.goto("/reports");
   await expect(page.locator('#report-print [aria-label="รูปบ้าน / ผังบ้าน"] img')).toHaveCount(3);
 });
+
+test("project page: project-wide photos (site, signboard) are saved and shown in the house report", async ({ page }) => {
+  await page.goto("/projects");
+  await page.getByRole("link", { name: /Siri Place Rama 2/ }).first().click();
+  await expect(page.getByText("รูป & วิดีโอโครงการ")).toBeVisible();
+  await page.getByTestId("photo-gallery-input").setInputFiles([img("site.png"), img("sign.png")]);
+  await expect(page.getByText("บันทึกรูป 2 รูปในเครื่องแล้ว")).toBeVisible();
+  await expect(page.getByRole("button", { name: /ดูรูป รูปโครงการ/ })).toHaveCount(2);
+  await page.goto("/reports");
+  await expect(page.locator('#report-print [aria-label="รูปบ้าน / ผังบ้าน"] img')).toHaveCount(2);
+});

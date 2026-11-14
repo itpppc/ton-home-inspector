@@ -51,7 +51,7 @@ export async function uploadPhotoBlobs(client: Pick<SupabaseClient, "storage">, 
       failed.set(photo.id, "ไม่มี storage_path");
       continue;
     }
-    const { error } = await client.storage.from(PHOTO_BUCKET).upload(photo.storage_path, local.blob, { contentType: "image/jpeg", upsert: true });
+    const { error } = await client.storage.from(PHOTO_BUCKET).upload(photo.storage_path, local.blob, { contentType: local.blob.type || (photo.media_type === "video" ? "video/mp4" : "image/jpeg"), upsert: true });
     if (error) failed.set(photo.id, error.message);
     else await db.photo_blobs.update(photo.id, { uploaded: 1 });
   }

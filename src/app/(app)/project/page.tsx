@@ -11,13 +11,15 @@ import { createProperty, deleteProject, updateProject } from "@/lib/db/repo";
 import { selectProperty } from "@/hooks/use-workspace";
 import { useAuth } from "@/providers/auth-provider";
 import { CONSTRUCTION_STATUS_META } from "@/lib/domain/labels";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, PageHeader } from "@/components/app/app-shell";
 import { ProjectForm } from "@/features/projects/project-form";
 import { PropertyForm } from "@/features/properties/property-form";
 import { MembersPanel } from "@/features/projects/members-panel";
+import { PhotoCapture } from "@/features/photos/photo-capture";
+import { PhotoGallery, usePhotos } from "@/features/photos/photo-gallery";
 import { useIdParam } from "@/components/app/use-id-param";
 import { formatDate } from "@/lib/utils";
 import { usePlan } from "@/features/plans/use-plan";
@@ -94,6 +96,7 @@ function ProjectDetail() {
               )}
             </CardContent>
           </Card>
+          <ProjectMedia projectId={project.id} canEdit={canEdit} />
           <MembersPanel projectId={project.id} />
         </div>
       </div>
@@ -119,6 +122,23 @@ function ProjectDetail() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/** Project-wide media: site, common areas, signboard, brochures — not tied to one house. */
+function ProjectMedia({ projectId, canEdit }: { projectId: string; canEdit: boolean }) {
+  const media = usePhotos({ projectId });
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>รูป & วิดีโอโครงการ</CardTitle>
+        <CardDescription>ส่วนกลาง ป้ายโครงการ ถนน เอกสาร/โบรชัวร์ · ทุกบ้านในโครงการเห็นร่วมกัน และแสดงในรายงาน</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {canEdit && <PhotoCapture target={{ project_id: projectId }} kind="PROJECT" size="sm" label="ถ่าย/แนบรูป" />}
+        <PhotoGallery photos={media} canDelete={canEdit} emptyText="ยังไม่มีรูปของโครงการ" />
+      </CardContent>
+    </Card>
   );
 }
 

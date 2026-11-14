@@ -25,8 +25,9 @@ export const INSPECTION_SCOPES = ["GENERAL", "ENGINEERING"] as const;
 /** ENGINEERING items are screening only — a licensed engineer must confirm; the app never certifies safety. */
 export type InspectionScope = (typeof INSPECTION_SCOPES)[number];
 
-/** PROPERTY = house-level photo (front of house, floor plan, documents; migration 0008). */
-export const PHOTO_KINDS = ["DEFECT", "AFTER_FIX", "ITEM", "PROPERTY"] as const;
+/** PROPERTY = house-level media (0008); PROJECT = project-level media with no house (0009). */
+export const PHOTO_KINDS = ["DEFECT", "AFTER_FIX", "ITEM", "PROPERTY", "PROJECT"] as const;
+export type MediaType = "image" | "video";
 export type PhotoKind = (typeof PHOTO_KINDS)[number];
 
 /** Columns every synced row carries. */
@@ -138,7 +139,8 @@ export interface DefectEvent extends SyncedRow {
 
 export interface Photo extends SyncedRow {
   project_id: string;
-  property_id: string;
+  /** null only for kind PROJECT. */
+  property_id: string | null;
   defect_id: string | null;
   item_id: string | null;
   kind: PhotoKind;
@@ -148,6 +150,9 @@ export interface Photo extends SyncedRow {
   height: number | null;
   size_bytes: number | null;
   taken_at: string;
+  /** Migration 0009; absent on rows synced before it = image. */
+  media_type?: MediaType;
+  duration_sec?: number | null;
 }
 
 /** Local-only photo binary, kept out of the synced row. */

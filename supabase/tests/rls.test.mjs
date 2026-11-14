@@ -245,6 +245,25 @@ ok("item photo still requires an item", !!r.error);
 r = await as(B, "insert into public.photos (id, project_id, property_id, kind) values ($1,$2,$3,'PROPERTY')", [id(), P, H]);
 ok("outsider cannot add house photos", !!r.error);
 
+// ───────────── Videos + project-level media (0009) ─────────────
+const MP = id(), MH = id();
+await db.query("insert into public.projects (id, owner_id, name) values ($1,$2,'media')", [MP, A]);
+await db.query("insert into public.properties (id, project_id, name) values ($1,$2,'h')", [MH, MP]);
+r = await as(A, "insert into public.photos (id, project_id, kind, storage_path) values ($1,$2,'PROJECT',$3)", [id(), MP, `${MP}/site.jpg`]);
+ok("project-level photo (no house)", !r.error, r.error);
+r = await as(A, "insert into public.photos (id, project_id, property_id, kind, media_type, duration_sec, storage_path) values ($1,$2,$3,'PROPERTY','video',12.5,$4)", [id(), MP, MH, `${MP}/walk.mp4`]);
+ok("house video with duration", !r.error, r.error);
+r = await as(A, "insert into public.photos (id, project_id, property_id, kind, media_type, duration_sec) values ($1,$2,$3,'PROPERTY','video',600)", [id(), MP, MH]);
+ok("over-long video rejected", !!r.error);
+r = await as(A, "insert into public.photos (id, project_id, kind) values ($1,$2,'PROPERTY')", [id(), MP]);
+ok("house photo without a house rejected", !!r.error);
+r = await as(A, "insert into public.photos (id, project_id, property_id, kind) values ($1,$2,$3,'PROJECT')", [id(), MP, MH]);
+ok("project photo cannot point at a house", !!r.error);
+r = await as(B, "insert into public.photos (id, project_id, kind) values ($1,$2,'PROJECT')", [id(), MP]);
+ok("outsider cannot add project photos", !!r.error);
+r = await as(B, "select count(*)::int c from public.photos where project_id = $1", [MP]);
+ok("outsider cannot see project photos", r.rows[0]?.c === 0);
+
 // ───────────── Membership plans (0007) ─────────────
 const [F, F2, F3] = [id(), id(), id()];
 for (const [u, e] of [[F, "f@x.co"], [F2, "f2@x.co"], [F3, "f3@x.co"]])

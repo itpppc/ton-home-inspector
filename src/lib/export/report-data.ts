@@ -16,7 +16,7 @@ export interface ReportData {
   defects: Defect[];
   /** Oldest first. */
   events: DefectEvent[];
-  /** Oldest first. */
+  /** Oldest first. The house's media plus its project's PROJECT-level media. */
   photos: Photo[];
 }
 
@@ -24,14 +24,16 @@ export async function loadReportData(propertyId: string): Promise<ReportData | n
   const db = getDB();
   const property = await db.properties.get(propertyId);
   if (!property || !alive(property)) return null;
-  const [project, rooms, categories, items, defects, photos] = await Promise.all([
+  const [project, rooms, categories, items, defects, houseMedia, projectMedia] = await Promise.all([
     db.projects.get(property.project_id),
     db.rooms.where("property_id").equals(propertyId).filter(alive).toArray(),
     db.checklist_categories.where("property_id").equals(propertyId).filter(alive).toArray(),
     db.checklist_items.where("property_id").equals(propertyId).filter(alive).toArray(),
     db.defects.where("property_id").equals(propertyId).filter(alive).toArray(),
     db.photos.where("property_id").equals(propertyId).filter(alive).toArray(),
+    db.photos.where("project_id").equals(property.project_id).filter((p) => alive(p) && p.kind === "PROJECT").toArray(),
   ]);
+  const photos = [...houseMedia, ...projectMedia];
   categories.sort((a, b) => a.sort_order - b.sort_order);
   rooms.sort((a, b) => a.sort_order - b.sort_order);
   const catOrder = new Map(categories.map((c, i) => [c.id, i]));

@@ -7,6 +7,7 @@ import { categoryProgress, checklistStats, defectStats } from "@/lib/domain/stat
 import { DEFECT_STATUSES, SEVERITIES, type Defect, type ItemStatus, type Photo } from "@/lib/domain/types";
 import type { ReportData } from "@/lib/export/report-data";
 import { usePhotoUrl } from "@/features/photos/photo-url";
+import { formatDuration } from "@/lib/media/policy";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 /**
@@ -21,6 +22,17 @@ const STATUS_COLOR: Record<ItemStatus, string> = {
 
 function ReportPhoto({ photo }: { photo: Photo }) {
   const { url, missing } = usePhotoUrl(photo);
+  if (photo.media_type === "video") {
+    // A printed page cannot play video: show a labelled tile; the clip stays in the app/cloud.
+    return (
+      <figure className="break-inside-avoid">
+        <div className="grid aspect-[4/3] place-items-center rounded border border-neutral-300 bg-neutral-800 text-center text-[11px] text-white">
+          <span>▶ วิดีโอ {formatDuration(photo.duration_sec)}<br /><span className="text-[10px] opacity-70">ดูได้ในแอป TON Home Inspector</span></span>
+        </div>
+        <figcaption className="mt-0.5 text-[10px] text-neutral-600">{formatDateTime(photo.taken_at)}</figcaption>
+      </figure>
+    );
+  }
   return (
     <figure className="break-inside-avoid">
       <div className="aspect-[4/3] overflow-hidden rounded border border-neutral-300 bg-neutral-100" data-photo-loading={!url && !missing ? "" : undefined}>
@@ -86,7 +98,7 @@ export function ReportView({ data }: { data: ReportData }) {
   const { property, project } = data;
   const cs = checklistStats(data.items);
   const ds = defectStats(data.defects);
-  const housePhotos = data.photos.filter((p) => p.kind === "PROPERTY");
+  const housePhotos = data.photos.filter((p) => p.kind === "PROPERTY" || p.kind === "PROJECT");
   const deadline = computeClaimDeadline({ transferDateActual: property.transfer_date_actual, transferDatePlanned: property.transfer_date_planned, windowDays: property.claim_window_days });
   const roomName = new Map(data.rooms.map((r) => [r.id, r.floor ? `${r.floor} - ${r.name}` : r.name]));
   const byCat = categoryProgress(data.categories, data.items);
