@@ -21,7 +21,12 @@ cp .env.example .env.local   # optional: fill Supabase keys
 npm run dev
 ```
 
-## Supabase setup
+## Supabase (production)
+- Project: `ton-home-inspector` · ref `loxvjserayyxfqlaakbk` · region `ap-southeast-1`
+- URL: `https://loxvjserayyxfqlaakbk.supabase.co` · use the **publishable** key in `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Migrations `init`, `rls`, `storage` applied 14 Nov 2026. Security advisor: 1 intentional WARN — `add_project_member` is SECURITY DEFINER so it can look up a profile by email; it checks `is_project_admin` before doing anything.
+
+## Supabase setup (new environment)
 1. Create a project, then apply `supabase/migrations/*.sql` in order (`supabase db push` or the SQL editor).
 2. Auth → URL Configuration: set Site URL and add `https://<domain>/auth/callback` to Redirect URLs.
 3. Put the project URL and anon key in `.env.local` / Vercel env.
